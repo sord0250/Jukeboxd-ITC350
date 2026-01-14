@@ -1,0 +1,77 @@
++<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jukeboxd</title>
+    <link rel="stylesheet" href=".\css\base.css">
+
+</head>
+<body>
+    <!--Load the Navbar-->
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <div id="nav-placeholder">
+    </div>
+
+    <script>
+    $(function(){
+        $("#nav-placeholder").load("./components/navbar.html");
+    });
+    </script>
+
+    <section>
+        <article class="review_card" data-id="1">
+            <header class="card_header">
+                <img class="profile_pic" src=".\img\jb_profile_pic.png" alt="profile_pic" style="width:40px;height:40px;">
+                <span class="username">spencer_ord</span>
+                <span class="mood">is feeling NOSTOLGIC...</span>
+            </header>
+            <div class="vinyl_image">
+                <img class="albumrecord" src=".\img\jb_record.png" alt="record">
+                <div class="albumcover">
+                    <img src=".\img\jb_albumcover.png" alt="albumcover">
+                </div>
+            </div>
+            <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link">
+                <div class="review">
+                    <div class="album_info">
+                        <h2 class="album_title">The Diary of Living</h2>
+                        <h3 class="artist">Adam Melchor</h3>
+                    </div>
+                    <div class="star_rating">★★★★★</div>
+                </div>
+            </a>
+                <footer class="card_footer">
+                    <p class="comment"><span class="username">spencer_ord</span> Are you even living bro??</p>
+                    <div class="social-buttons">
+                        <button class="s-button"><img class="s-button-logo" src="img/jb_logo_like.svg"></button>
+
+                        <button id="openModal" class="s-button"><img class="s-button-logo" src="img/jb_logo_comment.svg"></button>   <!-- trigger button -->
+                        <div id="commentModal" class="modal">         <!-- modal box -->
+                            <div class="modal-content">
+                                <span id="closeModal" class="close">&times;</span>
+                                
+                                <h2>Comments</h2>
+                                <div class="comments">
+                                <p><strong>User1:</strong> Love this album!</p>
+                                <p><strong>User2:</strong> Can’t stop listening!</p>
+                                </div>
+
+                                <textarea id="newComment" placeholder="Write your comment..."></textarea>
+                                <button id="submitComment">Add Comment</button>
+                            </div>
+                        </div>
+
+                        <button class="s-button"><img class="s-button-logo" src="img/jb_logo_share.png"></button>
+
+                    </div>
+        
+                </div>
+            </footer>
+        </article>
+
+
+    </section>
+    <script src="./js/main.js"></script>
+</body>
+</html>

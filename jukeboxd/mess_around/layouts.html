@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CSS Layout Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    .box {
+      background: lightblue;
+      border: 2px solid navy;
+      padding: 20px;
+      margin: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* 1. Normal Flow */
+    .normal p {
+      background: lightgreen;
+    }
+
+    /* 2. Inline-Block */
+    .inline-block .box {
+      display: inline-block;
+      width: 100px;
+    }
+
+    /* 3. Flexbox */
+    .flex {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    /* 4. Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* 5. Absolute Positioning */
+    .relative-wrapper {
+      position: relative;
+      height: 200px;
+      background: #f0f0f0;
+    }
+
+    .absolute {
+      position: absolute;
+      top: 50px;
+      left: 100px;
+      background: pink;
+    }
+  </style>
+</head>
+<body>
+  <h2>1. Normal Flow (stacked vertically)</h2>
+  <div class="normal">
+    <p>Paragraph 1</p>
+    <p>Paragraph 2</p>
+  </div>
+
+  <h2>2. Inline-Block (side by side)</h2>
+  <div class="inline-block">
+    <div class="box">Box A</div>
+    <div class="box">Box B</div>
+    <div class="box">Box C</div>
+  </div>
+
+  <h2>3. Flexbox (row, centered)</h2>
+  <div class="flex">
+    <div class="box">Box 1</div>
+    <div class="box">Box 2</div>
+    <div class="box">Box 3</div>
+  </div>
+
+  <h2>4. Grid (3 equal columns)</h2>
+  <div class="grid">
+    <div class="box">One</div>
+    <div class="box">Two</div>
+    <div class="box">Three</div>
+    <div class="box">Four</div>
+    <div class="box">Five</div>
+  </div>
+
+  <h2>5. Positioning (absolute inside relative)</h2>
+  <div class="relative-wrapper">
+    <div class="box">Normal Box</div>
+    <div class="box absolute">Absolute Box</div>
+  </div>
+</body>
+</html>

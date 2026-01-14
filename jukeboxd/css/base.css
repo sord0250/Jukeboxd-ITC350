@@ -1,0 +1,188 @@
+    
+    
+    
+    
+    body {
+        background-image: url('../img/jb_background.png');
+        background-size: cover; /* Makes the image cover the entire element */
+        background-repeat: no-repeat; /* Prevents the image from repeating */
+        background-position: top center; /* Centers the image */
+        background-attachment: scroll; /* Keeps the image fixed when scrolling (optional) */
+        background-color: #FEF7E1; /* Fallback color if image doesn't load */
+        padding-top: 64px;
+        font-family: sans-serif;
+    }
+
+    nav {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 10px 0;
+        position:fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        width: 100%;
+    }
+
+    .review_card {
+        margin: 20px auto;
+        width: 590px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .card_header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-left: 17px;
+        padding-top: 17px;
+    }
+
+    .albumcover img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 467px;
+        height: 467px;
+        padding-left: 10px;
+        padding-top: 14px;
+        z-index: 2;
+    }
+
+    .albumrecord {
+        position: absolute;
+        top: 0;
+        left: 124px;
+        width: 440px;
+        height: 440px;
+        padding-left: 10px;
+        padding-top: 27px;
+        z-index: 1;
+    }
+
+    .vinyl_image {
+        position: relative;
+        width: 590px;
+        height: 470px;
+        margin: 0 auto;
+    }
+
+    .review-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        width: 100%;
+    }
+
+    .review {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;             
+        background-color: white;
+        border: 1px solid black;
+        border-radius: 10px;
+        margin: 17px ;
+        padding: 12px;
+        box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+    }
+
+    .album_info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .album_title {
+        margin: 0;
+    }
+
+    .artist {
+        margin: 0;
+        font-weight: normal;
+        font-size: 0.9em;
+        color: #555;
+    }
+
+    .star_rating {
+        font-size: 1.2em;
+        padding-right: 10px;
+    }
+
+    .card_footer {
+        margin-left: 17px;
+    }
+
+    .comment {
+
+    }
+
+    .social-buttons {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        gap: 100px;
+        margin-bottom: 17px;
+    }
+
+    .s-button {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .s-button-logo {
+        width: 25px;
+        height: 25px;
+    }
+
+    .modal {
+        display: none; /* hidden by default */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5); /* semi-transparent background */
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 500px;
+        box-shadow: 0px 8px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Close button (X) */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: black;
+    }
+
+    /* Comments section */
+    .comments {
+        margin: 15px 0;
+    }
+
+    textarea {
+        width: 100%;
+        height: 70px;
+        margin-bottom: 10px;
+        padding: 10px;
+        font-size: 14px;
+    }
