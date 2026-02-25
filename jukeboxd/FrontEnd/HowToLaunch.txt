@@ -1,0 +1,11 @@
+Use commands
+
+- cd \Jukeboxd-ITC350\jukeboxd\FrontEnd
+
+then run 
+
+- python -m http.server
+
+navigate to localhost 
+
+- http://localhost:8000
