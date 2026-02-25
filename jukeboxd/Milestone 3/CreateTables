@@ -52,7 +52,7 @@ CREATE TABLE REVIEW
   R_Text VARCHAR(300),
   R_Rating FLOAT NOT NULL,
   CHECK (R_Rating <= 5 AND R_Rating >= 0),
-  R_TimeCreated INT NOT NULL,
+  R_TimeCreated DATETIME NOT NULL,
   R_NumOfLikes INT,
   S_ID INT NOT NULL,
   ART_ID INT NOT NULL,
