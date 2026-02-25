@@ -14,7 +14,6 @@ CREATE TABLE USER
   UNIQUE (U_Email)
 );
 
-# Variable Types NOT done
 CREATE TABLE ALBUM
 (
   AL_Name VARCHAR(100) NOT NULL,
