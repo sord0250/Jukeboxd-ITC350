@@ -7,7 +7,7 @@ INSERT INTO ARTIST (ART_Name, ART_Genre) VALUES ('The Stoners', 'Music for high 
 INSERT INTO ALBUM (AL_Name, AL_DateCreated, AL_Genre) VALUES ('Touching You', '2018-09-21', 'Music for high people');
 INSERT INTO MAKES_ALBUM (ART_ID, AL_ID) VALUES (1,1); 
 
-INSERT INTO SONG (S_Length, S_Name, S_Genre, AR_ID, AL_ID) VALUES ('243', 'song Name', 'Music for high people', 1, 1);
+INSERT INTO SONG (S_Length, S_Name, S_Genre, ART_ID, AL_ID) VALUES ('243', 'song Name', 'Music for high people', 1, 1);
 INSERT INTO MAKES_SONG (ART_ID, S_ID) VALUES (1,1);
 
 INSERT INTO REVIEW (R_ID, R_Text,  R_Rating, R_TimeCreated, R_NumOfLikes, S_ID, ART_ID, AL_ID, U_Username) VALUES (1, 'Absolute banger.',   5,   '2024-05-20 14:30:00',  0, 1,  NULL, NULL, 'BobStoner');

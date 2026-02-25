@@ -1,10 +1,10 @@
 -- Deleting 'AliceWonder'
 DELETE FROM REVIEW WHERE U_Username = 'AliceWonder';
-DELETE FROM USERS WHERE U_Username = 'AliceWonder';
+DELETE FROM USER WHERE U_Username = 'AliceWonder';
 
 -- Deleting 'MetalHead'
 DELETE FROM REVIEW WHERE U_Username = 'MetalHead';
-DELETE FROM USERS WHERE U_Username = 'MetalHead';
+DELETE FROM USER WHERE U_Username = 'MetalHead';
 
 -- Deleting 'Neon Lights' (S_ID = 3)
 DELETE FROM MAKES_SONG WHERE S_ID = 3;
