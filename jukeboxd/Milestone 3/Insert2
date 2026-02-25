@@ -59,7 +59,7 @@ INSERT INTO SONG (S_Length, S_Name, S_Genre, ART_ID, AL_ID) VALUES
 
 
 INSERT INTO MAKES_SONG (ART_ID, S_ID) VALUES 
-(2, 12), (2, 13), (3, 14), (3, 15), (4, 16), (4, 17), (5, 18), (5, 19), (6, 20), (6, 21), (7, 22), (7, 23), (8, 24), (8, 25), (9, 26), (9, 27), (10, 28), (10, 29), (1, 30), (1, 31); 
+(2, 1), (2, 2), (3, 3), (3, 4), (4, 5), (4, 6), (5, 7), (5, 8), (6, 9), (6, 10), (7, 11), (7, 12), (8, 13), (8, 14), (9, 15), (9, 16), (10, 17), (10, 18), (1, 19), (1, 20); 
 
 INSERT INTO REVIEW (R_Text, R_Rating, R_TimeCreated, R_NumOfLikes, S_ID, ART_ID, AL_ID, U_Username) VALUES 
 ('Incredible production quality.', 5, '2024-05-21 10:00:00', 5, 2, NULL, NULL, 'AliceWonder'),
