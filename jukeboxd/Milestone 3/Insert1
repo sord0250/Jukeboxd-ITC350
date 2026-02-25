@@ -1,4 +1,4 @@
-INSERT INTO USERS (U_Username, U_FName, U_LName, U_PasswordHash, U_Email, U_Role) 
+INSERT INTO USER (U_Username, U_FName, U_LName, U_PasswordHash, U_Email, U_Role) 
 VALUES ('BobStoner', 'Bob', 'Stone', SHA2('secure_password123', 256), 'john.doe@example.com', 'Admin');
 
 INSERT INTO ARTIST (ART_Name, ART_Genre) VALUES ('The Stoners', 'Music for high people'); 

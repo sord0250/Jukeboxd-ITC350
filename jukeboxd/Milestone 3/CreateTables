@@ -1,5 +1,6 @@
 CREATE DATABASE Jukeboxd;
 USE Jukeboxd;
+
 CREATE TABLE USER
 (
   U_FName VARCHAR(50) NOT NULL,
