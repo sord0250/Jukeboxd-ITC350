@@ -6,7 +6,7 @@ CREATE TABLE USER
   U_FName VARCHAR(50) NOT NULL,
   U_LName VARCHAR(50) NOT NULL,
   U_Username VARCHAR(12) NOT NULL,
-  CHECK (character_length(U_Username) > 5),
+  CHECK (character_length(U_Username) > 4),
   U_PasswordHash TEXT NOT NULL,
   U_ID INT AUTO_INCREMENT NOT NULL,
   U_Email VARCHAR(50) NOT NULL,
