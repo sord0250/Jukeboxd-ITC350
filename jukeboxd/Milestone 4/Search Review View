@@ -1,0 +1,7 @@
+USE jukeboxd;
+CREATE OR REPLACE VIEW seach_all AS 
+SELECT AL_ID AS id, AL_NAME AS name, ‘album’ AS type FROM ALBUM
+UNION ALL
+SELECT S_ID AS id, S_NAME AS name, ‘song’ AS type FROM SONG
+UNION ALL
+SELECT ART_ID AS id, ART_NAME AS name, ‘artist’ AS type FROM ARTIST;

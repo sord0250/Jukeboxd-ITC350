@@ -1,0 +1,13 @@
+USE jukeboxd;
+CREATE OR REPLACE VIEW user_reviews AS
+SELECT
+    u.U_Username,
+    u.U_ID,
+    r.R_ID,
+    r.R_Text,
+    r.R_Rating,
+    r.R_TimeCreated,
+    r.R_NumOfLikes
+FROM user u
+JOIN review r
+    ON u.U_Username = r.U_Username;

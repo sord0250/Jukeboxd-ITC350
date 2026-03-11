@@ -1,0 +1,8 @@
+USE jukeboxd;
+CREATE OR REPLACE VIEW song_review AS
+SELECT S_Name, S_Genre, R_Text, R_Rating, 
+R_TimeCreated, R_NumOfLikes, AL_Name, ART_Name
+FROM jukeboxd.song
+JOIN review ON review.S_ID = song.S_ID
+JOIN album ON album.AL_ID = song.AL_ID
+JOIN artist ON artist.ART_ID = song.ART_ID;

@@ -1,0 +1,13 @@
+USE jukeboxd;
+CREATE OR REPLACE VIEW album_reviews_view AS
+SELECT
+    AL_ID AS id,
+    AL_Name AS name,
+    AL_Genre AS genre,
+    R_ID AS review_id,
+    R_Text AS review_text,
+    R_Rating AS review_rating,
+    R_TimeCreated AS time_created,
+    R_NumOfLikes AS review_num_likes
+FROM album_reviews;
+
