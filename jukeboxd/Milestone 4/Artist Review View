@@ -1,14 +1,14 @@
 USE jukeboxd;
 CREATE or REPLACE VIEW artist_review AS
 SELECT 
-    a.ART_ID,
-    a.ART_Name,
-    a.ART_Genre,
-    b.R_ID,
-    b.R_Text,
-    b.R_Rating,
-    b.R_TimeCreated,
-    b.R_NumOfLikes
+	a.ART_ID,
+	a.ART_Name,
+	a.ART_Genre,
+	b.R_ID,
+	b.R_Text,
+	b.R_Rating,
+	b.R_TimeCreated,
+	b.R_NumOfLikes
 FROM artist a
 JOIN review b
 	ON a.ART_ID = b.ART_ID;
