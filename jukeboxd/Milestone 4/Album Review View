@@ -1,7 +1,6 @@
 USE jukeboxd;
-CREATE OR REPLACE VIEW album_reviews_view AS
-SELECT
-    AL_ID AS id,
+CREATE or REPLACE VIEW album_reviews AS
+SELECT album.AL_ID AS id,
     AL_Name AS name,
     AL_Genre AS genre,
     R_ID AS review_id,
@@ -9,5 +8,6 @@ SELECT
     R_Rating AS review_rating,
     R_TimeCreated AS time_created,
     R_NumOfLikes AS review_num_likes
-FROM album_reviews;
-
+FROM album
+JOIN review
+	ON album.AL_ID = review.AL_ID;
