@@ -1,0 +1,90 @@
+{
+  "currentUser": {
+    "id": 0,
+    "username": "your_username_here",
+    "displayName": "Your Name",
+    "profileImage": "./img/jb_profile_pic.png",
+    "bio": "Short user bio here."
+  },
+  "users": [
+    {
+      "id": 1,
+      "username": "sample_user",
+      "displayName": "Sample User",
+      "profileImage": "./img/jb_profile_pic.png",
+      "bio": "Example profile text."
+    }
+  ],
+  "artists": [
+    {
+      "id": 1,
+      "name": "Sample Artist",
+      "image": "./img/jb_profile.png",
+      "genre": "Alternative"
+    }
+  ],
+  "albums": [
+    {
+      "id": 1,
+      "title": "Sample Album",
+      "artistId": 1,
+      "coverImage": "./img/jb_albumcover.png",
+      "releaseDate": "2026-01-01",
+      "spotifyUrl": "https://open.spotify.com/"
+    }
+  ],
+  "songs": [
+    {
+      "id": 1,
+      "title": "Sample Song",
+      "albumId": 1,
+      "artistId": 1,
+      "trackNumber": 1,
+      "duration": "3:30"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "userId": 1,
+      "albumId": 1,
+      "rating": 5,
+      "mood": "nostalgic",
+      "reviewText": "Write the sample review text here.",
+      "createdAt": "2026-03-17T12:00:00Z",
+      "likes": 0,
+      "comments": [
+        {
+          "id": 1,
+          "userId": 1,
+          "text": "Sample comment text.",
+          "createdAt": "2026-03-17T12:30:00Z"
+        }
+      ]
+    }
+  ],
+  "playlists": [
+    {
+      "id": 1,
+      "name": "Sample Playlist",
+      "userId": 1,
+      "songIds": [
+        1
+      ]
+    }
+  ],
+  "searchResults": {
+    "albums": [
+      1
+    ],
+    "artists": [
+      1
+    ],
+    "songs": [
+      1
+    ],
+    "users": [
+      1
+    ]
+  }
+}
