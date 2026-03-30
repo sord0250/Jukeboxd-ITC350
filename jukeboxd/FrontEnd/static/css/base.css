@@ -9,21 +9,92 @@
         background-position: top center; /* Centers the image */
         background-attachment: scroll; /* Keeps the image fixed when scrolling (optional) */
         background-color: #FEF7E1; /* Fallback color if image doesn't load */
-        padding-top: 64px;
+        padding-top: 24px;
+        padding-left: 136px;
         font-family: sans-serif;
     }
 
-    nav {
+    .navbar {
         display: flex;
-        justify-content: space-evenly;
+        flex-direction: column;
+        justify-content: space-between;
         align-items: center;
         background-color: #ffffff;
-        padding: 10px 0;
-        position:fixed;
-        top: 0;
-        left: 0;
+        padding: 24px 0;
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        bottom: 18px;
         z-index: 1000;
+        width: 96px;
+        border-radius: 26px;
+        box-shadow: 0 18px 40px rgba(48, 35, 22, 0.16);
+    }
+
+    .nav-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
         width: 100%;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        text-decoration: none;
+    }
+
+    .nav-icon {
+        width: 64px;
+        height: 64px;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+
+    .nav-icon-home {
+        width: 68px;
+        height: 68px;
+    }
+
+    .nav-link:hover .nav-icon,
+    .nav-link:focus-visible .nav-icon {
+        transform: scale(1.12);
+    }
+
+    .nav-link:focus-visible {
+        outline: none;
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding-left: 24px;
+            padding-top: 110px;
+        }
+
+        .navbar {
+            flex-direction: row;
+            justify-content: space-between;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            bottom: auto;
+            width: auto;
+            padding: 12px 20px;
+            border-radius: 24px;
+        }
+
+        .nav-group {
+            flex-direction: row;
+            gap: 20px;
+            width: auto;
+        }
+
+        .nav-link {
+            width: auto;
+        }
     }
 
     .review_card {
