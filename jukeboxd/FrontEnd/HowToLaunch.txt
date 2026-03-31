@@ -1,11 +1,10 @@
 Use commands
 
-- cd \Jukeboxd-ITC350\jukeboxd\FrontEnd
+- python -m venv .venv --without-pip
+- python -m pip --python .\.venv install -r requirements.txt
+- .\.venv\Scripts\Activate.ps1
+- python .\jukeboxd\FrontEnd\app.py
 
-then run 
+navigate to
 
-- python -m http.server
-
-navigate to localhost 
-
-- http://localhost:8000
+- http://127.0.0.1:5000

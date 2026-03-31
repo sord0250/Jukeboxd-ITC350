@@ -4,32 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>jukeboxd</title>
-    <link rel="stylesheet" href=".\css\base.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 
 </head>
 <body>
-    <!--Load the Navbar-->
-    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-    <div id="nav-placeholder">
-    </div>
-
-    <script>
-    $(function(){
-        $("#nav-placeholder").load("./components/navbar.html");
-    });
-    </script>
+    {% include "components/navbar.html" %}
 
     <section>
         <article class="review_card" data-id="1">
             <header class="card_header">
-                <img class="profile_pic" src=".\img\jb_profile_pic.png" alt="profile_pic" style="width:40px;height:40px;">
+                <img class="profile_pic" src="{{ url_for('static', filename='img/jb_profile_pic.png') }}" alt="profile_pic" style="width:40px;height:40px;">
                 <span class="username">spencer_ord</span>
                 <span class="mood">is feeling NOSTOLGIC...</span>
             </header>
             <div class="vinyl_image">
-                <img class="albumrecord" src=".\img\jb_record.png" alt="record">
+                <img class="albumrecord" src="{{ url_for('static', filename='img/jb_record.png') }}" alt="record">
                 <div class="albumcover">
-                    <img src=".\img\jb_albumcover.png" alt="albumcover">
+                    <img src="{{ url_for('static', filename='img/jb_albumcover.png') }}" alt="albumcover">
                 </div>
             </div>
             <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link">
@@ -44,9 +35,9 @@
                 <footer class="card_footer">
                     <p class="comment"><span class="username">spencer_ord</span> Are you even living bro??</p>
                     <div class="social-buttons">
-                        <button class="s-button"><img class="s-button-logo" src="img/jb_logo_like.svg"></button>
+                        <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_like.svg') }}"></button>
 
-                        <button id="openModal" class="s-button"><img class="s-button-logo" src="img/jb_logo_comment.svg"></button>   <!-- trigger button -->
+                        <button id="openModal" class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_comment.svg') }}"></button>   <!-- trigger button -->
                         <div id="commentModal" class="modal">         <!-- modal box -->
                             <div class="modal-content">
                                 <span id="closeModal" class="close">&times;</span>
@@ -62,7 +53,7 @@
                             </div>
                         </div>
 
-                        <button class="s-button"><img class="s-button-logo" src="img/jb_logo_share.png"></button>
+                        <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_share.png') }}"></button>
 
                     </div>
         
@@ -72,6 +63,6 @@
 
 
     </section>
-    <script src="./js/main.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
