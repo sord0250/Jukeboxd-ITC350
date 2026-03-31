@@ -17,51 +17,58 @@
                 <span class="username">spencer_ord</span>
                 <span class="mood">is feeling NOSTOLGIC...</span>
             </header>
-            <div class="vinyl_image">
-                <img class="albumrecord" src="{{ url_for('static', filename='img/jb_record.png') }}" alt="record">
-                <div class="albumcover">
-                    <img src="{{ url_for('static', filename='img/jb_albumcover.png') }}" alt="albumcover">
+            <div class="review_body">
+                <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link review-cover-link">
+                    <div class="vinyl_image">
+                        <img class="albumrecord" src="{{ url_for('static', filename='img/jb_record.png') }}" alt="record">
+                        <div class="albumcover">
+                            <img src="{{ url_for('static', filename='img/jb_albumcover.png') }}" alt="albumcover">
+                        </div>
+                    </div>
+                </a>
+
+                <div class="review_panel">
+                    <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link">
+                        <div class="review">
+                            <div class="album_info">
+                                <h2 class="album_title">The Diary of Living</h2>
+                                <h3 class="artist">Adam Melchor</h3>
+                            </div>
+                            <div class="star_rating">★★★★★</div>
+                        </div>
+                    </a>
+
+                    <p class="review_text">
+                        I would give this album a ten out of ten for me. I've heard this record so many times, and every single song is a personal favorite. I come back to it when I want something soft and reflective, and it still feels fresh every time. The lyrics hit hard, the melodies are beautiful, and the whole thing feels like the kind of album you sit with for a while.
+                    </p>
+
+                    <footer class="card_footer">
+                        <p class="playing_tag">FAV: This Thing of Ours</p>
+                        <div class="social-buttons">
+                            <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_like.svg') }}"></button>
+
+                            <button id="openModal" class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_comment.svg') }}"></button>
+                            <div id="commentModal" class="modal">
+                                <div class="modal-content">
+                                    <span id="closeModal" class="close">&times;</span>
+
+                                    <h2>Comments</h2>
+                                    <div class="comments">
+                                    <p><strong>User1:</strong> Love this album!</p>
+                                    <p><strong>User2:</strong> Can't stop listening!</p>
+                                    </div>
+
+                                    <textarea id="newComment" placeholder="Write your comment..."></textarea>
+                                    <button id="submitComment">Add Comment</button>
+                                </div>
+                            </div>
+
+                            <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_share.png') }}"></button>
+                        </div>
+                    </footer>
                 </div>
             </div>
-            <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link">
-                <div class="review">
-                    <div class="album_info">
-                        <h2 class="album_title">The Diary of Living</h2>
-                        <h3 class="artist">Adam Melchor</h3>
-                    </div>
-                    <div class="star_rating">★★★★★</div>
-                </div>
-            </a>
-                <footer class="card_footer">
-                    <p class="comment"><span class="username">spencer_ord</span> Are you even living bro??</p>
-                    <div class="social-buttons">
-                        <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_like.svg') }}"></button>
-
-                        <button id="openModal" class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_comment.svg') }}"></button>   <!-- trigger button -->
-                        <div id="commentModal" class="modal">         <!-- modal box -->
-                            <div class="modal-content">
-                                <span id="closeModal" class="close">&times;</span>
-                                
-                                <h2>Comments</h2>
-                                <div class="comments">
-                                <p><strong>User1:</strong> Love this album!</p>
-                                <p><strong>User2:</strong> Can’t stop listening!</p>
-                                </div>
-
-                                <textarea id="newComment" placeholder="Write your comment..."></textarea>
-                                <button id="submitComment">Add Comment</button>
-                            </div>
-                        </div>
-
-                        <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_share.png') }}"></button>
-
-                    </div>
-        
-                </div>
-            </footer>
         </article>
-
-
     </section>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
