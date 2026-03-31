@@ -1,19 +1,20 @@
-    <nav class="navbar">
-        <div class="nav-group nav-group-top">
-            <a class="nav-link" href="{{ url_for('home') }}" aria-label="Home">
-                <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}" alt="jb_logo">
-            </a>
-            <a class="nav-link" href="{{ url_for('search') }}" aria-label="Search">
+<nav class="navbar">
+    <div class="nav-menu">
+        <a class="nav-link nav-logo-link" href="{{ url_for('home') }}" aria-label="Home">
+            <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}" alt="jb_logo">
+        </a>
+        <div class="nav-dropdown" aria-label="Quick navigation">
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}" aria-label="Search">
                 <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}" alt="jb_search">
             </a>
-            <a class="nav-link" href="{{ url_for('add') }}" aria-label="Add">
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}" aria-label="Add">
                 <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}" alt="jb_add">
             </a>
-            <!-- <a class="nav-link" href="{{ url_for('stats') }}" aria-label="Messages"><img class="nav-icon" src="{{ url_for('static', filename='img/jb_chat.png') }}" alt="jb_stats"></a> -->
+            <!-- <a class="nav-link nav-dropdown-link" href="{{ url_for('stats') }}" aria-label="Messages"><img class="nav-icon" src="{{ url_for('static', filename='img/jb_chat.png') }}" alt="jb_stats"></a> -->
         </div>
-        <div class="nav-group nav-group-bottom">
-            <a class="nav-link" href="{{ url_for('profile') }}" aria-label="Profile">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_profile.png') }}" alt="jb_profile">
-            </a>
-        </div>
-    </nav>
+    </div>
+
+    <a class="nav-link nav-profile-link" href="{{ url_for('profile') }}" aria-label="Profile">
+        <img class="nav-icon nav-icon-profile" src="{{ url_for('static', filename='img/jb_profile.png') }}" alt="jb_profile">
+    </a>
+</nav>

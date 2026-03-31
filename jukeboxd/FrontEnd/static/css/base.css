@@ -9,41 +9,76 @@
         background-position: top center; /* Centers the image */
         background-attachment: scroll; /* Keeps the image fixed when scrolling (optional) */
         background-color: #FEF7E1; /* Fallback color if image doesn't load */
-        padding-top: 24px;
-        padding-left: 136px;
+        padding-top: 124px;
+        padding-left: 24px;
+        padding-right: 24px;
         font-family: sans-serif;
     }
 
     .navbar {
         display: flex;
-        flex-direction: column;
         justify-content: space-between;
-        align-items: center;
-        background-color: #ffffff;
-        padding: 24px 0;
+        align-items: flex-start;
         position: fixed;
         top: 18px;
         left: 18px;
-        bottom: 18px;
+        right: 18px;
         z-index: 1000;
-        width: 96px;
-        border-radius: 26px;
-        box-shadow: 0 18px 40px rgba(48, 35, 22, 0.16);
+        pointer-events: none;
     }
 
-    .nav-group {
+    .nav-menu {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 28px;
-        width: 100%;
+        gap: 14px;
+        pointer-events: auto;
     }
 
     .nav-link {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-logo-link,
+    .nav-profile-link {
+        width: 92px;
+        height: 92px;
+        background-color: #ffffff;
+        border-radius: 30px;
+        box-shadow: 0 18px 40px rgba(48, 35, 22, 0.16);
+        pointer-events: auto;
+    }
+
+    .nav-dropdown {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding: 18px 14px;
+        background-color: rgba(255, 255, 255, 0.96);
+        border-radius: 28px;
+        box-shadow: 0 18px 40px rgba(48, 35, 22, 0.16);
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .nav-menu:hover .nav-dropdown,
+    .nav-menu:focus-within .nav-dropdown {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .nav-dropdown-link {
+        width: 64px;
+        height: 64px;
         text-decoration: none;
     }
 
@@ -59,9 +94,23 @@
         height: 68px;
     }
 
+    .nav-icon-profile {
+        width: 66px;
+        height: 66px;
+    }
+
     .nav-link:hover .nav-icon,
     .nav-link:focus-visible .nav-icon {
         transform: scale(1.12);
+    }
+
+    .nav-logo-link:hover,
+    .nav-logo-link:focus-visible,
+    .nav-profile-link:hover,
+    .nav-profile-link:focus-visible,
+    .nav-dropdown-link:hover,
+    .nav-dropdown-link:focus-visible {
+        box-shadow: 0 20px 44px rgba(48, 35, 22, 0.22);
     }
 
     .nav-link:focus-visible {
@@ -70,30 +119,44 @@
 
     @media (max-width: 768px) {
         body {
-            padding-left: 24px;
-            padding-top: 110px;
+            padding-left: 18px;
+            padding-right: 18px;
+            padding-top: 108px;
         }
 
         .navbar {
-            flex-direction: row;
-            justify-content: space-between;
             top: 16px;
             left: 16px;
             right: 16px;
-            bottom: auto;
-            width: auto;
-            padding: 12px 20px;
+        }
+
+        .nav-logo-link,
+        .nav-profile-link {
+            width: 78px;
+            height: 78px;
             border-radius: 24px;
         }
 
-        .nav-group {
-            flex-direction: row;
-            gap: 20px;
-            width: auto;
+        .nav-icon {
+            width: 54px;
+            height: 54px;
         }
 
-        .nav-link {
-            width: auto;
+        .nav-icon-home,
+        .nav-icon-profile {
+            width: 56px;
+            height: 56px;
+        }
+
+        .nav-dropdown {
+            gap: 14px;
+            padding: 14px 12px;
+            border-radius: 24px;
+        }
+
+        .nav-dropdown-link {
+            width: 56px;
+            height: 56px;
         }
     }
 
