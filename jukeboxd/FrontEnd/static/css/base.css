@@ -4,15 +4,22 @@
     
     body {
         background-image: url('../img/jb_background.png');
-        background-size: cover; /* Makes the image cover the entire element */
-        background-repeat: no-repeat; /* Prevents the image from repeating */
+        background-size: 100% auto;
+        background-repeat: repeat-y;
         background-position: top center; /* Centers the image */
-        background-attachment: scroll; /* Keeps the image fixed when scrolling (optional) */
+        background-attachment: fixed;
         background-color: #FEF7E1; /* Fallback color if image doesn't load */
         padding-top: 124px;
         padding-left: 24px;
         padding-right: 24px;
         font-family: sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    body.modal_open {
+        overflow: hidden;
     }
 
     .navbar {
@@ -125,6 +132,11 @@
             padding-top: 108px;
         }
 
+        .feed_page {
+            height: 100vh;
+            padding-top: 108px;
+        }
+
         .navbar {
             top: 16px;
             left: 16px;
@@ -169,6 +181,28 @@
         border-radius: 26px;
         box-shadow: 0 18px 34px rgba(48, 35, 22, 0.1);
         padding: 22px 26px 18px;
+    }
+
+    .feed_page {
+        width: min(1040px, 100%);
+        margin: 0 auto;
+        height: 100vh;
+        overflow-y: auto;
+        padding-top: 124px;
+        padding-bottom: 24px;
+        box-sizing: border-box;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        overscroll-behavior: contain;
+    }
+
+    .feed_page::-webkit-scrollbar {
+        display: none;
+    }
+
+    .feed_list {
+        display: grid;
+        gap: 22px;
     }
 
     .card_header {
@@ -389,6 +423,478 @@
 
         .card_footer {
             padding-bottom: 0;
+        }
+    }
+
+    .sr_only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .search_page {
+        width: min(1080px, 100%);
+        margin: 0 auto;
+    }
+
+    .search_shell {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 252, 245, 0.98) 100%);
+        border: 1px solid rgba(88, 72, 62, 0.08);
+        border-radius: 30px;
+        box-shadow: 0 22px 40px rgba(48, 35, 22, 0.1);
+        padding: 28px;
+    }
+
+    .search_intro {
+        max-width: 760px;
+        margin-bottom: 22px;
+    }
+
+    .search_eyebrow {
+        margin: 0 0 8px;
+        font-size: 0.82rem;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: #8a7567;
+    }
+
+    .search_title {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: #2f2622;
+    }
+
+    .search_subtitle {
+        margin: 12px 0 0;
+        max-width: 64ch;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #64554d;
+    }
+
+    .search_bar_wrap {
+        margin-bottom: 14px;
+    }
+
+    .search_input {
+        width: 100%;
+        min-height: 72px;
+        border: 1px solid rgba(76, 60, 51, 0.18);
+        border-radius: 22px;
+        padding: 0 24px;
+        font-size: 1.08rem;
+        color: #2f2622;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 10px 24px rgba(48, 35, 22, 0.05);
+    }
+
+    .search_input::placeholder {
+        color: #978579;
+    }
+
+    .search_input:focus {
+        outline: none;
+        border-color: rgba(91, 73, 62, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 14px 28px rgba(48, 35, 22, 0.08);
+    }
+
+    .search_meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        color: #7a685e;
+        font-size: 0.92rem;
+    }
+
+    .search_results {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .search_card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 12px 22px rgba(48, 35, 22, 0.05);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .search_card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 26px rgba(48, 35, 22, 0.08);
+        border-color: rgba(67, 54, 48, 0.2);
+    }
+
+    .search_card:focus-visible {
+        outline: 2px solid rgba(91, 73, 62, 0.35);
+        outline-offset: 3px;
+    }
+
+    .search_card_media {
+        width: 86px;
+        height: 86px;
+        flex-shrink: 0;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #ede5dc;
+        box-shadow: 0 8px 16px rgba(48, 35, 22, 0.08);
+    }
+
+    .search_card_art {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .search_card_copy {
+        min-width: 0;
+    }
+
+    .search_card_type {
+        margin: 0 0 6px;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: #8a7567;
+    }
+
+    .search_card_title {
+        margin: 0;
+        font-size: 1.28rem;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        color: #2f2622;
+    }
+
+    .search_card_artist {
+        margin: 8px 0 0;
+        font-size: 0.95rem;
+        color: #67574e;
+    }
+
+    .search_empty {
+        grid-column: 1 / -1;
+        padding: 42px 20px;
+        text-align: center;
+        border-radius: 22px;
+        border: 1px dashed rgba(76, 60, 51, 0.2);
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .search_empty_title {
+        margin: 0;
+        font-size: 1.35rem;
+        color: #2f2622;
+    }
+
+    .search_empty_copy {
+        margin: 10px 0 0;
+        color: #74645a;
+    }
+
+    .modal_overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(28, 20, 15, 0.42);
+        backdrop-filter: blur(8px);
+    }
+
+    .modal_overlay[hidden] {
+        display: none !important;
+    }
+
+    .modal_shell {
+        position: relative;
+        width: min(920px, 100%);
+        max-height: min(88vh, 920px);
+        overflow: auto;
+        background: linear-gradient(180deg, rgba(255, 254, 251, 0.99) 0%, rgba(255, 251, 245, 0.98) 100%);
+        border: 1px solid rgba(76, 60, 51, 0.14);
+        border-radius: 28px;
+        box-shadow: 0 28px 60px rgba(28, 20, 15, 0.24);
+        padding: 30px;
+    }
+
+    .modal_shell_review {
+        width: min(680px, 100%);
+    }
+
+    .modal_close {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(56, 43, 36, 0.08);
+        color: #2f2622;
+        font-size: 1.55rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .detail_modal_layout {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+    }
+
+    .detail_media_column {
+        position: sticky;
+        top: 0;
+    }
+
+    .detail_cover {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: block;
+        border-radius: 24px;
+        object-fit: cover;
+        box-shadow: 0 18px 28px rgba(48, 35, 22, 0.14);
+    }
+
+    .detail_meta,
+    .review_modal_meta {
+        margin: 0 0 10px;
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8a7567;
+    }
+
+    .detail_title,
+    .review_modal_title {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+        color: #2f2622;
+    }
+
+    .detail_artist {
+        margin: 10px 0 0;
+        font-size: 1.08rem;
+        color: #66574f;
+    }
+
+    .detail_description {
+        margin: 18px 0 0;
+        max-width: 56ch;
+        font-size: 1rem;
+        line-height: 1.72;
+        color: #564841;
+    }
+
+    .detail_reviews_section {
+        margin-top: 26px;
+    }
+
+    .detail_reviews_heading_row {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .detail_reviews_heading {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #2f2622;
+    }
+
+    .detail_reviews_count {
+        font-size: 0.9rem;
+        color: #7b695f;
+    }
+
+    .detail_reviews_list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .detail_review_card {
+        width: 100%;
+        padding: 16px 18px;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.86);
+        text-align: left;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .detail_review_card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(67, 54, 48, 0.2);
+        box-shadow: 0 12px 24px rgba(48, 35, 22, 0.06);
+    }
+
+    .detail_review_head,
+    .review_modal_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .detail_review_identity {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .detail_review_avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .detail_review_username {
+        font-weight: 700;
+        color: #2f2622;
+    }
+
+    .detail_review_rating {
+        color: #2f2622;
+        letter-spacing: 0.08em;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .detail_review_title {
+        margin: 12px 0 8px;
+        font-size: 1.04rem;
+        color: #2f2622;
+    }
+
+    .detail_review_snippet,
+    .review_modal_copy {
+        margin: 0;
+        color: #605149;
+        line-height: 1.68;
+        font-size: 0.95rem;
+    }
+
+    .detail_empty_reviews {
+        margin: 0;
+        color: #7b695f;
+    }
+
+    .review_modal_body {
+        padding-top: 10px;
+    }
+
+    .review_modal_head {
+        margin-top: 6px;
+    }
+
+    .review_modal_copy {
+        margin-top: 18px;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 900px) {
+        .search_results {
+            grid-template-columns: 1fr;
+        }
+
+        .detail_modal_layout {
+            grid-template-columns: 1fr;
+        }
+
+        .detail_media_column {
+            position: static;
+            max-width: 280px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .search_shell {
+            padding: 20px 16px;
+            border-radius: 24px;
+        }
+
+        .search_input {
+            min-height: 62px;
+            padding: 0 18px;
+            border-radius: 18px;
+        }
+
+        .search_meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .search_card {
+            gap: 12px;
+            padding: 14px;
+            border-radius: 18px;
+        }
+
+        .search_card_media {
+            width: 72px;
+            height: 72px;
+            border-radius: 14px;
+        }
+
+        .search_card_title {
+            font-size: 1.1rem;
+        }
+
+        .modal_overlay {
+            padding: 12px;
+        }
+
+        .modal_shell {
+            padding: 22px 16px 16px;
+            border-radius: 22px;
+        }
+
+        .modal_close {
+            top: 10px;
+            right: 10px;
+        }
+
+        .detail_title,
+        .review_modal_title {
+            font-size: 1.7rem;
+        }
+
+        .detail_review_head,
+        .review_modal_head,
+        .detail_reviews_heading_row {
+            align-items: flex-start;
+            flex-direction: column;
         }
     }
 
