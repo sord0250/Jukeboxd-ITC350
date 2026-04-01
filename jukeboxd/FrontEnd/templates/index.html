@@ -12,22 +12,15 @@
 
     <section>
         <article class="review_card" data-id="1">
-            <header class="card_header">
-                <img class="profile_pic" src="{{ url_for('static', filename='img/jb_profile_pic.png') }}" alt="profile_pic" style="width:40px;height:40px;">
-                <span class="username">spencer_ord</span>
-                <span class="mood">is feeling NOSTOLGIC...</span>
-            </header>
             <div class="review_body">
-                <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link review-cover-link">
-                    <div class="vinyl_image">
-                        <img class="albumrecord" src="{{ url_for('static', filename='img/jb_record.png') }}" alt="record">
-                        <div class="albumcover">
-                            <img src="{{ url_for('static', filename='img/jb_albumcover.png') }}" alt="albumcover">
-                        </div>
-                    </div>
-                </a>
-
                 <div class="review_panel">
+                    <header class="card_header">
+                        <div class="card_identity">
+                            <img class="profile_pic" src="{{ url_for('static', filename='img/jb_profile_pic.png') }}" alt="profile picture">
+                            <span class="username">spencer_ord</span>
+                        </div>
+                    </header>
+
                     <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link">
                         <div class="review">
                             <div class="album_info">
@@ -43,30 +36,20 @@
                     </p>
 
                     <footer class="card_footer">
-                        <p class="playing_tag">FAV: This Thing of Ours</p>
                         <div class="social-buttons">
                             <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_like.svg') }}"></button>
-
-                            <button id="openModal" class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_comment.svg') }}"></button>
-                            <div id="commentModal" class="modal">
-                                <div class="modal-content">
-                                    <span id="closeModal" class="close">&times;</span>
-
-                                    <h2>Comments</h2>
-                                    <div class="comments">
-                                    <p><strong>User1:</strong> Love this album!</p>
-                                    <p><strong>User2:</strong> Can't stop listening!</p>
-                                    </div>
-
-                                    <textarea id="newComment" placeholder="Write your comment..."></textarea>
-                                    <button id="submitComment">Add Comment</button>
-                                </div>
-                            </div>
-
-                            <button class="s-button"><img class="s-button-logo" src="{{ url_for('static', filename='img/jb_logo_share.png') }}"></button>
                         </div>
                     </footer>
                 </div>
+
+                <a href="https://open.spotify.com/album/1TnFGuknfiulSWC69uDq3r" target="_blank" class="review-link review-cover-link">
+                    <div class="vinyl_image">
+                        <img class="albumrecord" src="{{ url_for('static', filename='img/jb_record.png') }}" alt="record">
+                        <div class="albumcover">
+                            <img src="{{ url_for('static', filename='img/jb_albumcover.png') }}" alt="albumcover">
+                        </div>
+                    </div>
+                </a>
             </div>
         </article>
     </section>
