@@ -1,6 +1,6 @@
 Use commands
 
-- python -m venv .venv --without-pip
+- python -m venv .venv
 - python -m pip --python .\.venv install -r requirements.txt
 - .\.venv\Scripts\Activate.ps1
 - python .\jukeboxd\FrontEnd\app.py
