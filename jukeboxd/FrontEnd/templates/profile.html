@@ -3,12 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Profile | jukeboxd</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
-<body>
+<body class="profile_body">
     {% include "components/navbar.html" %}
 
-    <h1>profile</h1>
+    <main class="profile_page">
+        <section class="profile_layout">
+            <aside class="profile_sidebar">
+                <div class="profile_identity_card">
+                    <img class="profile_page_avatar" src="{{ url_for('static', filename='img/jb_profile_pic.png') }}" alt="profile picture">
+                    <div class="profile_identity_copy">
+                        <p class="profile_label">Profile</p>
+                        <h1 class="profile_name">spencer_ord</h1>
+                        <p class="profile_handle">@spencer_ord</p>
+                    </div>
+                </div>
+
+                <div class="profile_info_card">
+                    <h2 class="profile_section_title">About</h2>
+                    <dl class="profile_info_list">
+                        <div class="profile_info_row">
+                            <dt>Favorite genre</dt>
+                            <dd>Indie Folk</dd>
+                        </div>
+                        <div class="profile_info_row">
+                            <dt>Reviews written</dt>
+                            <dd>8</dd>
+                        </div>
+                        <div class="profile_info_row">
+                            <dt>Member since</dt>
+                            <dd>March 2026</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="profile_actions_card">
+                    <h2 class="profile_section_title">Account</h2>
+                    <div class="profile_action_list">
+                        <button class="profile_action_button" type="button">Edit profile</button>
+                        <button class="profile_action_button" type="button">Settings</button>
+                        <button class="profile_action_button profile_action_button_logout" type="button">Log out</button>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="profile_reviews_panel">
+                <div class="profile_reviews_header">
+                    <p class="profile_label">Reviews</p>
+                    <h2 class="profile_reviews_title">Recent thoughts</h2>
+                    <p class="profile_reviews_subtitle">A clean preview of this user's recent reviews. These are still hardcoded mock entries for styling.</p>
+                </div>
+
+                <div id="profile-review-list" class="profile_review_list" aria-live="polite"></div>
+            </section>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

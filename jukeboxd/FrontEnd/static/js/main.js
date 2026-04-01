@@ -318,6 +318,26 @@ function createFeedCard(entry) {
     `;
 }
 
+function getProfileReviews(username = "spencer_ord") {
+    return getFeedReviews().filter((review) => review.username === username);
+}
+
+function createProfileReviewCard(entry) {
+    return `
+        <article class="profile_review_card" data-id="${entry.id}">
+            <div class="profile_review_top">
+                <div class="profile_review_identity">
+                    <img class="profile_review_avatar" src="${entry.avatar}" alt="${entry.username}">
+                    <span class="profile_review_username">${entry.username}</span>
+                </div>
+                <span class="profile_review_rating">${entry.rating}</span>
+            </div>
+            <h3 class="profile_review_headline">${entry.body.split(". ")[0]}</h3>
+            <p class="profile_review_body">${entry.body}</p>
+        </article>
+    `;
+}
+
 function createDetailContent(item) {
     const meta = [item.subtitle, item.year, item.genre].filter(Boolean).join(" • ");
     const reviewsMarkup = item.reviews.length
@@ -516,7 +536,19 @@ function initHomeFeed() {
     feedList.innerHTML = feedEntries.map(createFeedCard).join("");
 }
 
+function initProfilePage() {
+    const profileReviewList = document.getElementById("profile-review-list");
+
+    if (!profileReviewList) {
+        return;
+    }
+
+    const reviews = getProfileReviews();
+    profileReviewList.innerHTML = reviews.map(createProfileReviewCard).join("");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initHomeFeed();
+    initProfilePage();
     initSearchPage();
 });
