@@ -1,75 +1,75 @@
-INSERT INTO USER (U_Username, U_FName, U_LName, U_PasswordHash, U_Email, U_Role) VALUES 
-('AliceWonder', 'Alice', 'Smith', SHA2('pass123', 256), 'alice@example.com', 'User'),
-('MelodyMaker', 'Charlie', 'Brown', SHA2('rockon', 256), 'charlie@example.com', 'User'),
-('VinylVibes', 'Dana', 'White', SHA2('records4life', 256), 'dana@example.com', 'User'),
-('BassBoost', 'Eddie', 'Gomez', SHA2('lowend', 256), 'eddie@example.com', 'User'),
-('SynthWave', 'Fiona', 'Gallagher', SHA2('80svibe', 256), 'fiona@example.com', 'User'),
-('JazzCat', 'George', 'Miller', SHA2('smoothjazz', 256), 'george@example.com', 'User'),
-('MetalHead', 'Hank', 'Hill', SHA2('heavystuff', 256), 'hank@example.com', 'User'),
-('PopPrincess', 'Ivy', 'Blue', SHA2('top40', 256), 'ivy@example.com', 'User'),
-('LoFiLover', 'Jack', 'Black', SHA2('chillbeats', 256), 'jack@example.com', 'User');
+-- ====================
+-- Users
+-- ====================
+INSERT INTO USER (U_FName, U_LName, U_Username, U_PasswordHash, U_Email, U_Role)
+VALUES 
+('Alice', 'Smith', 'AliceS', SHA2('password123', 256), 'alice@example.com', 'User'),
+('Bob', 'Johnson', 'BobbyJ', SHA2('qwerty456', 256), 'bob@example.com', 'User'),
+('Charlie', 'Brown', 'CharlieB', SHA2('abc123', 256), 'charlie@example.com', 'Admin');
 
-INSERT INTO ARTIST (ART_Name, ART_Genre) VALUES 
-('The Electric Ants', 'Indie Rock'),
-('Midnight City', 'Synthpop'),
-('Lunar Echo', 'Ambient'),
-('Iron Strings', 'Metal'),
-('Velvet Voice', 'Jazz'),
-('Neon Dreams', 'Electronic'),
-('The Acoustic Trio', 'Folk'),
-('Durban Beats', 'Afrobeats'),
-('Cloud Nine', 'Lo-Fi'),
-('Rhythm Kings', 'Funk');
+-- ====================
+-- Artists
+-- ====================
+INSERT INTO ARTIST (ART_Name, ART_Genre) 
+VALUES
+('Coldplay', 'Alternative Rock'),
+('Adele', 'Pop'),
+('Imagine Dragons', 'Pop Rock'),
+('Ed Sheeran', 'Pop');
 
-INSERT INTO ALBUM (AL_Name, AL_DateCreated, AL_Genre) VALUES 
-('Static Skies', '2019-05-12', 'Indie Rock'),
-('Midnight Run', '2020-11-01', 'Synthpop'),
-('Void', '2021-02-14', 'Ambient'),
-('Rusty Gears', '2017-08-30', 'Metal'),
-('Blue Notes', '2022-01-05', 'Jazz'),
-('Digital Pulse', '2023-06-15', 'Electronic'),
-('Campfire Songs', '2016-10-10', 'Folk'),
-('Sunlight', '2022-09-22', 'Afrobeats'),
-('Sleepy Head', '2021-12-01', 'Lo-Fi'),
-('Groove Nation', '2018-04-04', 'Funk');
-INSERT INTO MAKES_ALBUM (ART_ID, AL_ID) VALUES 
-(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10);
+-- ====================
+-- Albums
+-- ====================
+INSERT INTO ALBUM (AL_Name, AL_DateCreated, AL_Genre, AL_SpotifyID)
+VALUES
+('Parachutes', '2000-07-10', 'Alternative Rock', 'spotify:album:1'),
+('25', '2015-11-20', 'Pop', 'spotify:album:2'),
+('Evolve', '2017-06-23', 'Pop Rock', 'spotify:album:3'),
+('Divide', '2017-03-03', 'Pop', 'spotify:album:4');
 
-INSERT INTO SONG (S_Length, S_Name, S_Genre, ART_ID, AL_ID) VALUES 
-('210', 'Electric Dreams', 'Indie Rock', 2, 2),
-('195', 'Low Light', 'Indie Rock', 2, 2),
-('240', 'Synth City', 'Synthpop', 3, 3),
-('205', 'After Hours', 'Synthpop', 3, 3),
-('420', 'Event Horizon', 'Ambient', 4, 4),
-('380', 'Stardust', 'Ambient', 4, 4),
-('215', 'Heavy Metal Thunder', 'Metal', 5, 5),
-('233', 'Grinding Gears', 'Metal', 5, 5),
-('285', 'Autumn Leaves', 'Jazz', 6, 6),
-('310', 'Coffee Shop Blues', 'Jazz', 6, 6),
-('190', 'Glitch in the Matrix', 'Electronic', 7, 7),
-('200', 'Pulse Rate', 'Electronic', 7, 7),
-('185', 'Mountain Air', 'Folk', 8, 8),
-('220', 'River Flow', 'Folk', 8, 8),
-('245', 'Lagos Night', 'Afrobeats', 9, 9),
-('212', 'Island Sun', 'Afrobeats', 9, 9),
-('145', 'Lo-Fi Chill', 'Lo-Fi', 10, 10),
-('160', 'Study Session', 'Lo-Fi', 10, 10),
-('275', 'Get Up and Dance', 'Funk', 1, 1),
-('290', 'The Funky Penguin', 'Funk', 1, 1);
+-- ====================
+-- Songs
+-- ====================
+INSERT INTO SONG (S_Name, S_Length, S_Genre, AL_ID, S_SpotifyID)
+VALUES
+('Yellow', 269, 'Alternative Rock', 1, 'spotify:song:1'),
+('Fix You', 295, 'Alternative Rock', 1, 'spotify:song:2'),
+('Hello', 295, 'Pop', 2, 'spotify:song:3'),
+('Someone Like You', 285, 'Pop', 2, 'spotify:song:4'),
+('Believer', 204, 'Pop Rock', 3, 'spotify:song:5'),
+('Thunder', 187, 'Pop Rock', 3, 'spotify:song:6'),
+('Shape of You', 233, 'Pop', 4, 'spotify:song:7'),
+('Perfect', 263, 'Pop', 4, 'spotify:song:8');
 
+-- ====================
+-- Makes_Album
+-- ====================
+INSERT INTO MAKES_ALBUM (ART_ID, AL_ID)
+VALUES
+(1, 1), -- Coldplay -> Parachutes
+(2, 2), -- Adele -> 25
+(3, 3), -- Imagine Dragons -> Evolve
+(4, 4); -- Ed Sheeran -> Divide
 
-INSERT INTO MAKES_SONG (ART_ID, S_ID) VALUES 
-(2, 1), (2, 2), (3, 3), (3, 4), (4, 5), (4, 6), (5, 7), (5, 8), (6, 9), (6, 10), (7, 11), (7, 12), (8, 13), (8, 14), (9, 15), (9, 16), (10, 17), (10, 18), (1, 19), (1, 20); 
+-- ====================
+-- Makes_Song
+-- ====================
+INSERT INTO MAKES_SONG (ART_ID, S_ID)
+VALUES
+(1, 1), -- Coldplay -> Yellow
+(1, 2), -- Coldplay -> Fix You
+(2, 3), -- Adele -> Hello
+(2, 4), -- Adele -> Someone Like You
+(3, 5), -- Imagine Dragons -> Believer
+(3, 6), -- Imagine Dragons -> Thunder
+(4, 7), -- Ed Sheeran -> Shape of You
+(4, 8); -- Ed Sheeran -> Perfect
 
-INSERT INTO REVIEW (R_Text, R_Rating, R_TimeCreated, R_NumOfLikes, AL_ID, U_Username) VALUES 
-('Incredible production quality.', 5, '2024-05-21 10:00:00', 5, 2, 'AliceWonder'),
-('A bit too slow for me.', 2, '2024-05-22 08:15:00', 1, 3, 'MelodyMaker'),
-('This album changed my life.', 5, '2024-05-23 12:00:00', 12, 3, 'VinylVibes');
-INSERT INTO REVIEW (R_Text, R_Rating, R_TimeCreated, R_NumOfLikes, S_ID, U_Username) VALUES 
-('The guitar solo is insane!', 4, '2024-05-24 16:45:00', 3, 4, 'BassBoost'),
-('Perfect for studying.', 5, '2024-05-25 22:30:00', 8, 9, 'SynthWave'),
-('Not their best work.', 3, '2024-05-26 09:10:00', 0, 1, 'JazzCat');
-INSERT INTO REVIEW (R_Text, R_Rating, R_TimeCreated, R_NumOfLikes, ART_ID, U_Username) VALUES 
-('Heavy and melodic.', 4, '2024-05-27 11:00:00', 4, 4, 'MetalHead'),
-('Catchy but repetitive.', 3, '2024-05-28 14:20:00', 2, 6, 'PopPrincess'),
-('Total vibe.', 5, '2024-05-29 19:00:00', 10, 10, 'LoFiLover');
+-- ====================
+-- Optional Reviews
+-- ====================
+INSERT INTO REVIEW (R_Text, R_Rating, R_TimeCreated, R_NumOfLikes, S_ID, ART_ID, AL_ID, U_Username)
+VALUES
+('Amazing song!', 5, NOW(), 10, 1, 1, 1, 'AliceS'),
+('Classic album!', 4.5, NOW(), 5, NULL, 2, 2, 'BobbyJ'),
+('Love this track', 5, NOW(), 7, 7, 4, 4, 'CharlieB');
