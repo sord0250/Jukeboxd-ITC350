@@ -1,4 +1,4 @@
-CREATE or REPLACE VIEW user_reviews AS
+CREATE or REPLACE VIEW user_review AS
 SELECT
 	u.U_Username,
 	u.U_ID,
@@ -7,6 +7,6 @@ SELECT
 	r.R_Rating,
 	r.R_TimeCreated,
 	r.R_NumOfLikes
-FROM user u
-JOIN review r
+FROM USER u
+JOIN REVIEW r
 	ON u.U_Username = r.U_Username;

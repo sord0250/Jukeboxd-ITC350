@@ -1,5 +1,5 @@
 USE jukeboxd;
-CREATE OR REPLACE VIEW search AS 
+CREATE OR REPLACE VIEW search AS
 SELECT 
   s.S_Name AS Song,
   s.S_Length,
@@ -8,8 +8,10 @@ SELECT
   ar.ART_Genre AS Artist_Genre,
   al.AL_Name AS Album,
   al.AL_Genre AS Album_Genre
-FROM song s
-JOIN artist ar 
-  ON s.ART_ID = ar.ART_ID
-JOIN album al 
+FROM SONG s
+JOIN MAKES_SONG ms
+  ON s.S_ID = ms.S_ID
+JOIN ARTIST ar
+  ON ms.ART_ID = ar.ART_ID
+JOIN ALBUM al
   ON s.AL_ID = al.AL_ID;

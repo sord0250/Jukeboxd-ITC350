@@ -9,6 +9,6 @@ SELECT
 	b.R_Rating,
 	b.R_TimeCreated,
 	b.R_NumOfLikes
-FROM artist a
-JOIN review b
+FROM ARTIST a
+JOIN REVIEW b
 	ON a.ART_ID = b.ART_ID;
