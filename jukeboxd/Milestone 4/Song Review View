@@ -1,6 +1,7 @@
 USE jukeboxd;
 CREATE OR REPLACE VIEW song_review AS
 SELECT 
+    REVIEW.R_ID AS id,
     SONG.S_Name, 
     SONG.S_Genre, 
     REVIEW.R_Text, 
@@ -9,8 +10,8 @@ SELECT
     REVIEW.R_NumOfLikes, 
     ALBUM.AL_Name,
     ALBUM.AL_ID
-FROM jukeboxd.SONG
-JOIN jukeboxd.REVIEW 
+FROM SONG
+JOIN REVIEW 
     ON REVIEW.S_ID = SONG.S_ID
-JOIN jukeboxd.ALBUM 
+JOIN ALBUM 
     ON ALBUM.AL_ID = SONG.AL_ID;

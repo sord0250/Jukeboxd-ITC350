@@ -1,6 +1,7 @@
 USE jukeboxd;
 CREATE OR REPLACE VIEW search AS
 SELECT 
+  s.S_ID AS id,
   s.S_Name AS Song,
   s.S_Length,
   s.S_Genre AS Song_Genre,

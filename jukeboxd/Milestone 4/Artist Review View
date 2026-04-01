@@ -1,6 +1,7 @@
 USE jukeboxd;
 CREATE or REPLACE VIEW artist_review AS
 SELECT 
+	a.ART_ID AS id,
 	a.ART_ID,
 	a.ART_Name,
 	a.ART_Genre,

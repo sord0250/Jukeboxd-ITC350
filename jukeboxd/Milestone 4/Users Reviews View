@@ -1,5 +1,6 @@
 CREATE or REPLACE VIEW user_review AS
 SELECT
+	u.U_ID AS id,
 	u.U_Username,
 	u.U_ID,
 	r.R_ID,
