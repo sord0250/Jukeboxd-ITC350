@@ -1,0 +1,51 @@
+USE jukeboxd;
+
+CREATE OR REPLACE VIEW feed_reviews AS
+
+-- SONG REVIEWS
+SELECT 
+    REVIEW.R_ID AS review_id,
+    SONG.S_Name AS title,
+    'song' AS review_type,
+    SONG.S_Genre AS genre,
+    REVIEW.R_Text AS review_text,
+    REVIEW.R_Rating AS review_rating,
+    REVIEW.R_TimeCreated AS time_created,
+    REVIEW.R_NumOfLikes AS num_likes,
+    ALBUM.AL_Name AS album_name
+FROM SONG
+JOIN REVIEW ON REVIEW.S_ID = SONG.S_ID
+JOIN ALBUM ON ALBUM.AL_ID = SONG.AL_ID
+
+UNION
+
+-- ALBUM REVIEWS
+SELECT 
+    REVIEW.R_ID AS review_id,
+    ALBUM.AL_Name AS title,
+    'album' AS review_type,
+    ALBUM.AL_Genre AS genre,
+    REVIEW.R_Text AS review_text,
+    REVIEW.R_Rating AS review_rating,
+    REVIEW.R_TimeCreated AS time_created,
+    REVIEW.R_NumOfLikes AS num_likes,
+    ALBUM.AL_Name AS album_name
+FROM ALBUM
+JOIN REVIEW ON ALBUM.AL_ID = REVIEW.AL_ID
+
+UNION
+
+-- ARTIST REVIEWS
+SELECT 
+    REVIEW.R_ID AS review_id,
+    ARTIST.ART_Name AS title,
+    'artist' AS review_type,
+    ARTIST.ART_Genre AS genre,
+    REVIEW.R_Text AS review_text,
+    REVIEW.R_Rating AS review_rating,
+    REVIEW.R_TimeCreated AS time_created,
+    REVIEW.R_NumOfLikes AS num_likes,
+    NULL AS album_name
+FROM ARTIST
+JOIN REVIEW ON ARTIST.ART_ID = REVIEW.ART_ID
+ORDER BY RAND();
