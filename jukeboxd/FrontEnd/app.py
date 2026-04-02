@@ -95,5 +95,15 @@ def feed():
     r = requests.get(f"{DIRECTUS_URL}/feed_review")
     return jsonify(r.json())
 
+# Add review endpoint
+@app.route("/api/add_review", methods=["POST"])
+def add_review():
+    data = request.json
+
+    # send to Directus or insert into DB
+    print(data)
+
+    return jsonify({"status": "success"})
+
 if __name__ == "__main__":
     app.run(debug=True)
