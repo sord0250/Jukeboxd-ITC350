@@ -3,12 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Add Review | jukeboxd</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
-<body>
+<body class="add_body">
     {% include "components/navbar.html" %}
 
-    <h1>add</h1>
+    <main class="add_page">
+        <section class="add_shell">
+            <div class="add_intro">
+                <p class="add_eyebrow">Write</p>
+                <h1 class="add_title">Add a new review</h1>
+                <p class="add_subtitle">Pick an album, song, or artist, choose your rating, and leave a few thoughts.</p>
+            </div>
+
+            <form id="add-review-form" class="add_form" novalidate>
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">1. Search and select</h2>
+                        <p class="add_section_copy">Start typing to find something to review.</p>
+                    </div>
+
+                    <div class="add_search_wrap">
+                        <label class="sr_only" for="review-search-input">Search for music to review</label>
+                        <input
+                            id="review-search-input"
+                            class="search_input add_search_input"
+                            type="search"
+                            placeholder="Try 'Ctrl', 'Billie Jean', or 'Phoebe'"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div class="add_search_meta">
+                        <span id="review-search-count" class="search_count">Start typing to search</span>
+                        <span id="selected-review-item" class="add_selected_label">Nothing selected yet</span>
+                    </div>
+
+                    <div id="review-search-results" class="add_results" aria-live="polite"></div>
+                </section>
+
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">2. Choose a rating</h2>
+                        <p class="add_section_copy">Give it 1 to 5 stars.</p>
+                    </div>
+
+                    <div class="rating_picker" role="radiogroup" aria-label="Choose a star rating">
+                        <button class="rating_star" type="button" data-rating-value="1" aria-label="1 star">★</button>
+                        <button class="rating_star" type="button" data-rating-value="2" aria-label="2 stars">★</button>
+                        <button class="rating_star" type="button" data-rating-value="3" aria-label="3 stars">★</button>
+                        <button class="rating_star" type="button" data-rating-value="4" aria-label="4 stars">★</button>
+                        <button class="rating_star" type="button" data-rating-value="5" aria-label="5 stars">★</button>
+                    </div>
+
+                    <p id="rating-status" class="rating_status">No rating selected yet</p>
+                    <input id="review-rating-input" type="hidden" name="rating" value="">
+                </section>
+
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">3. Write your review</h2>
+                        <p class="add_section_copy">Share what stood out to you.</p>
+                    </div>
+
+                    <label class="sr_only" for="review-text">Review text</label>
+                    <textarea
+                        id="review-text"
+                        class="add_textarea"
+                        name="review"
+                        rows="7"
+                        placeholder="What did you think?"
+                    ></textarea>
+                </section>
+
+                <div class="add_actions">
+                    <p id="add-form-message" class="add_form_message" aria-live="polite"></p>
+                    <button class="add_submit_button" type="submit">Submit review</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
