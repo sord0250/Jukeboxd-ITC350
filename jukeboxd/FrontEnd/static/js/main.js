@@ -194,59 +194,8 @@ function initSearchPage() {
     input.addEventListener("input", (event) => {
         renderResults(event.target.value);
     });
-
-    resultsContainer.addEventListener("click", (event) => {
-        const card = event.target.closest("[data-item-id]");
-
-        if (!card) {
-            return;
-        }
-
-        openDetailModal(card.dataset.itemId);
-    });
-
-    detailContent.addEventListener("click", (event) => {
-        const reviewCard = event.target.closest(".detail_review_card");
-
-        if (!reviewCard) {
-            return;
-        }
-
-        openReviewModal(reviewCard.dataset.itemId, Number(reviewCard.dataset.reviewIndex));
-    });
-
-    detailClose.addEventListener("click", () => closeModal(detailModal));
-    reviewClose.addEventListener("click", () => closeModal(reviewModal));
-
-    detailModal.addEventListener("click", (event) => {
-        if (event.target === detailModal) {
-            closeModal(detailModal);
-        }
-    });
-
-    reviewModal.addEventListener("click", (event) => {
-        if (event.target === reviewModal) {
-            closeModal(reviewModal);
-        }
-    });
-
-    document.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape") {
-            return;
-        }
-
-        if (!reviewModal.hidden) {
-            closeModal(reviewModal);
-            return;
-        }
-
-        if (!detailModal.hidden) {
-            closeModal(detailModal);
-        }
-    });
-
-    renderResults();
 }
+
 
 function initAddPage() {
     const form = document.getElementById("add-review-form");
