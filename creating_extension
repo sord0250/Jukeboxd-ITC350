@@ -1,0 +1,107 @@
+Good — this is actually very helpful. I can see exactly what broke now.
+
+Your Node upgrade failed because of a package conflict with libnode-dev, which is why npm and npx disappeared and Node stayed at v12.22.9. That error is clearly shown here:
+
+
+So we need to fix Node installation first, then build the Directus extension properly. Nothing else will work until Node/npm/npx work.
+
+Fix Node Installation (this is the blocker)
+
+Run these commands exactly in this order:
+
+sudo apt remove -y nodejs libnode-dev npm
+sudo apt autoremove -y
+sudo apt clean
+
+Then install Node 22 again:
+
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+Now verify:
+
+node -v
+npm -v
+npx -v
+
+You should see something like:
+
+v22.x.x
+10.x.x
+10.x.x
+
+If that works, we are finally in business.
+
+Then create the Directus extension correctly
+
+After Node works:
+
+cd ~/directus
+mkdir extension-dev
+cd extension-dev
+
+npx create-directus-extension@latest
+
+Choose:
+
+type: endpoint
+name: test-endpoint
+language: javascript
+
+Then build it:
+
+cd directus-extension-test-endpoint
+npm install
+npm run build
+
+After build, you should see:
+
+dist/index.js
+package.json
+Move built extension into Directus extensions folder
+
+Back to your main Directus folder:
+
+cd ~/directus
+rm -rf extensions/*
+cp -r extension-dev/directus-extension-test-endpoint extensions/
+
+Your structure should now be:
+
+directus/
+  extensions/
+    directus-extension-test-endpoint/
+      package.json
+      dist/
+        index.js
+Restart Directus
+docker compose down
+docker compose up -d
+docker logs -f directus-directus-1
+
+You should see something like:
+
+Loaded extension: directus-extension-test-endpoint
+Test endpoint
+
+Open in browser:
+
+http://YOUR_SERVER_IP:8055/directus-extension-test-endpoint
+
+or sometimes:
+
+http://YOUR_SERVER_IP:8055/test-endpoint
+
+(depending on extension config)
+
+Summary — where we actually are
+
+You were stuck for 3 reasons:
+
+Node v12 → extension tooling incompatible
+Node upgrade failed due to libnode-dev conflict
+Extensions were not built before mounting
+
+Fix Node → build extension → copy built folder → restart Directus → endpoint works.
+
+If Node installs successfully after removing libnode-dev, tell me and we’ll finish the extension setup in one pass.

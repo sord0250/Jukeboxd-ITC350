@@ -1,0 +1,14 @@
+Endpoints for the API
+http://64.23.156.15:8055/items/ARTIST
+http://64.23.156.15:8055/items/ALBUM
+http://64.23.156.15:8055/items/USER
+http://64.23.156.15:8055/items/REVIEW
+http://64.23.156.15:8055/items/SONG
+
+
+VIEWS
+http://64.23.156.15:8055/search?q=
+http://64.23.156.15:8055/artist_review/
+http://64.23.156.15:8055/album_reviews/
+http://64.23.156.15:8055/user_review/
+http://64.23.156.15:8055/song_review/
