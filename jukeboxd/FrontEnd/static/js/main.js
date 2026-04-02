@@ -1,3 +1,5 @@
+const DIRECTUS_URL = "http://64.23.156.15:8055";
+
 // -------------------- API CALLS --------------------
 
 async function fetchSearch(query) {
@@ -15,19 +17,7 @@ async function fetchUserReviews() {
     return await response.json();
 }
 
-
 // -------------------- CARD BUILDERS --------------------
-
-function createSearchCard(item) {
-    return `
-        <button class="search_card" type="button">
-            <div class="search_card_copy">
-                <p class="search_card_type">${item.type}</p>
-                <h2 class="search_card_title">${item.title}</h2>
-            </div>
-        </button>
-    `;
-}
 
 function createFeedCard(entry, index = 0) {
     return `
@@ -39,23 +29,15 @@ function createFeedCard(entry, index = 0) {
         >
             <div class="detail_review_head">
                 <div class="detail_review_identity">
-                    <img 
-                        class="detail_review_avatar" 
-                        src="/static/img/jb_profile_pic.png" 
-                        alt="user"
-                    >
-                    <span class="detail_review_username">user</span>
+                    <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
+                    <span class="detail_review_username">${entry.username || "user"}</span>
                 </div>
                 <span class="detail_review_rating">⭐ ${entry.review_rating}</span>
             </div>
 
-            <h3 class="detail_review_title">
-                ${entry.title}
-            </h3>
+            <h3 class="detail_review_title">${entry.title}</h3>
 
-            <p class="detail_review_snippet">
-                ${entry.review_text}
-            </p>
+            <p class="detail_review_snippet">${entry.review_text}</p>
 
             <p style="font-size: 12px; opacity: 0.7;">
                 ${entry.review_type.toUpperCase()}
@@ -63,7 +45,7 @@ function createFeedCard(entry, index = 0) {
             </p>
 
             <p style="font-size: 12px; opacity: 0.7;">
-                ❤️ ${entry.num_likes}
+                ❤️ ${entry.num_likes || 0}
             </p>
         </button>
     `;
@@ -79,7 +61,6 @@ function createProfileReviewCard(entry) {
     `;
 }
 
-
 // -------------------- SEARCH PAGE --------------------
 
 function initSearchPage() {
@@ -90,48 +71,33 @@ function initSearchPage() {
     if (!input || !resultsContainer || !count) return;
 
     async function renderResults(query = "") {
-    const normalizedQuery = query.trim();
+        const normalizedQuery = query.trim();
 
-    if (!normalizedQuery) {
-        count.textContent = "Start typing to search";
-        resultsContainer.innerHTML = `
-            <div class="add_results_placeholder">
-                <p class="add_results_placeholder_copy">
-                    Matching albums, songs, and artists will appear here.
-                </p>
-            </div>
-        `;
-        return;
-    }
+        if (!normalizedQuery) {
+            count.textContent = "Start typing to search";
+            resultsContainer.innerHTML = "";
+            return;
+        }
 
-    const results = await fetchSearch(normalizedQuery);
+        const results = await fetchSearch(normalizedQuery);
 
-    count.textContent = `${results.length} match${results.length === 1 ? "" : "es"}`;
+        count.textContent = `${results.length} matches`;
 
-    if (!results.length) {
-        resultsContainer.innerHTML = `
-            <div class="add_results_placeholder">
-                <p class="add_results_placeholder_copy">
-                    No matches yet.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    resultsContainer.innerHTML = results.map((item) => `
-        <button class="search_card" data-item-id="${item.id}">
-            <p>${item.type}</p>
-            <h3>${item.title}</h3>
-        </button>
-    `).join("");
+        resultsContainer.innerHTML = results.map((item) => `
+            <button class="search_card"
+                data-item-id="${item.id}"
+                data-item-type="${item.type}"
+                data-item-title="${item.title}">
+                <p>${item.type}</p>
+                <h3>${item.title}</h3>
+            </button>
+        `).join("");
     }
 
     input.addEventListener("input", (event) => {
         renderResults(event.target.value);
     });
 }
-
 
 // -------------------- HOME FEED --------------------
 
@@ -147,7 +113,6 @@ async function initHomeFeed() {
         .join("");
 }
 
-
 // -------------------- PROFILE PAGE --------------------
 
 async function initProfilePage() {
@@ -160,7 +125,8 @@ async function initProfilePage() {
     profileReviewList.innerHTML = reviews.map(createProfileReviewCard).join("");
 }
 
-// -------------------- ADD THAT DANG SONG ---------------------
+// -------------------- ADD REVIEW PAGE --------------------
+
 function initAddPage() {
     const form = document.getElementById("add-review-form");
     const input = document.getElementById("review-search-input");
@@ -173,12 +139,9 @@ function initAddPage() {
     const message = document.getElementById("add-form-message");
     const ratingButtons = Array.from(document.querySelectorAll(".rating_star"));
 
-    if (!form || !input || !resultsContainer || !count || !selectedLabel || !ratingInput || !ratingStatus || !reviewText || !message || !ratingButtons.length) {
-        return;
-    }
+    if (!form) return;
 
     let selectedItem = null;
-    let selectedItemId = "";
 
     function updateSelectedLabel() {
         if (!selectedItem) {
@@ -199,25 +162,17 @@ function initAddPage() {
 
         const results = await fetchSearch(normalizedQuery);
 
-        count.textContent = `${results.length} match${results.length === 1 ? "" : "es"}`;
+        count.textContent = `${results.length} matches`;
 
         resultsContainer.innerHTML = results.map((item) => `
-            <button class="search_card" data-item-id="${item.id}">
+            <button class="search_card"
+                data-item-id="${item.id}"
+                data-item-type="${item.type}"
+                data-item-title="${item.title}">
                 <p>${item.type}</p>
                 <h3>${item.title}</h3>
             </button>
         `).join("");
-    }
-
-    function setRating(value) {
-        ratingInput.value = String(value);
-        ratingStatus.textContent = `${value} out of 5 stars selected`;
-
-        ratingButtons.forEach((button) => {
-            const buttonValue = Number(button.dataset.ratingValue);
-            const isActive = buttonValue <= value;
-            button.classList.toggle("is_active", isActive);
-        });
     }
 
     input.addEventListener("input", (event) => {
@@ -225,23 +180,34 @@ function initAddPage() {
     });
 
     resultsContainer.addEventListener("click", (event) => {
-        const card = event.target.closest("[data-item-id]");
+        const card = event.target.closest(".search_card");
         if (!card) return;
 
-        selectedItemId = card.dataset.itemId;
         selectedItem = {
-            id: card.dataset.itemId,
-            title: card.querySelector("h3").textContent
+            id: Number(card.dataset.itemId),
+            type: card.dataset.itemType,
+            title: card.dataset.itemTitle
         };
+
+        console.log("Selected item:", selectedItem);
 
         input.value = selectedItem.title;
         updateSelectedLabel();
         message.textContent = "";
 
-        // CLOSE SEARCH RESULTS
         resultsContainer.innerHTML = "";
         count.textContent = "Item selected";
     });
+
+    function setRating(value) {
+        ratingInput.value = String(value);
+        ratingStatus.textContent = `${value} out of 5 stars selected`;
+
+        ratingButtons.forEach((button) => {
+            const buttonValue = Number(button.dataset.ratingValue);
+            button.classList.toggle("is_active", buttonValue <= value);
+        });
+    }
 
     ratingButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -250,48 +216,73 @@ function initAddPage() {
         });
     });
 
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-        const rating = Number(ratingInput.value);
-        const reviewBody = reviewText.value.trim();
-
-        if (!selectedItemId) {
-            message.textContent = "Pick something to review before submitting.";
+        if (!selectedItem) {
+            message.textContent = "Please select a song, album, or artist.";
             return;
         }
 
-        if (!rating) {
-            message.textContent = "Choose a star rating before submitting.";
+        if (!ratingInput.value) {
+            message.textContent = "Please select a rating.";
             return;
         }
 
-        if (!reviewBody) {
-            message.textContent = "Write a review before submitting.";
+        if (!reviewText.value.trim()) {
+            message.textContent = "Please write a review.";
             return;
         }
 
-        await fetch("/api/add_review", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                item_id: selectedItemId,
-                rating: rating,
-                review_text: reviewBody
-            })
-        });
+        const reviewData = {
+            R_Text: reviewText.value.trim(),
+            R_Rating: Number(ratingInput.value),
+            U_ID: 1,
+            U_Username: "AliceS",
+            R_TimeCreated: new Date().toISOString()
+        };
 
-        message.textContent = "Review submitted!";
-        form.reset();
-        selectedItem = null;
-        selectedItemId = "";
-        updateSelectedLabel();
-        renderResults("");
+        if (selectedItem.type === "song") {
+            reviewData.S_ID = selectedItem.id;
+        }
+        if (selectedItem.type === "album") {
+            reviewData.AL_ID = selectedItem.id;
+        }
+        if (selectedItem.type === "artist") {
+            reviewData.ART_ID = selectedItem.id;
+        }
+
+        console.log("Posting review:", reviewData);
+
+        try {
+            const response = await fetch(DIRECTUS_URL + "/items/REVIEW", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(reviewData)
+            });
+
+            const data = await response.json();
+            console.log("Response:", data);
+
+            if (response.ok) {
+                message.textContent = "Review submitted!";
+                form.reset();
+                selectedItem = null;
+                updateSelectedLabel();
+            } else {
+                message.textContent = data.errors[0].message;
+            }
+
+        } catch (err) {
+            console.error(err);
+            message.textContent = "Server error. See console.";
+        }
     });
 
     updateSelectedLabel();
 }
-
 
 // -------------------- PAGE INITIALIZER --------------------
 
