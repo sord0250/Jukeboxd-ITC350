@@ -17,6 +17,44 @@ app.secret_key = "super_secret_key_change_this"
 DIRECTUS_URL = "http://64.23.156.15:8055"
 
 
+def _extract_payload_list(payload):
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if isinstance(data, list):
+            return data, "data"
+    if isinstance(payload, list):
+        return payload, None
+    return [], None
+
+
+def _filter_user_reviews(payload, username=None, user_id=None):
+    reviews, container_key = _extract_payload_list(payload)
+
+    normalized_username = (username or "").strip()
+    normalized_user_id = str(user_id).strip() if user_id is not None else ""
+
+    filtered = reviews
+
+    if normalized_username:
+        filtered = [
+            review for review in filtered
+            if str(review.get("U_Username", "")).strip() == normalized_username
+        ]
+
+    if normalized_user_id:
+        filtered = [
+            review for review in filtered
+            if str(review.get("U_ID", review.get("id", ""))).strip() == normalized_user_id
+        ]
+
+    if container_key == "data":
+        result = dict(payload)
+        result["data"] = filtered
+        return result
+
+    return filtered
+
+
 # -----------------------
 # PAGE ROUTES
 # -----------------------
@@ -146,8 +184,13 @@ def artist_reviews():
 
 @app.route("/api/user_reviews")
 def user_reviews():
+    username = request.args.get("username")
+    user_id = request.args.get("user_id")
+    if not username and "username" in session:
+        username = session["username"]
+
     r = requests.get(f"{DIRECTUS_URL}/user_review/")
-    return jsonify(r.json())
+    return jsonify(_filter_user_reviews(r.json(), username=username, user_id=user_id))
 
 
 # Feed review endpoint
@@ -250,11 +293,8 @@ def api_login():
 
 @app.route("/api/user_reviews/<username>")
 def get_user_reviews(username):
-    r = requests.get(
-        f"{DIRECTUS_URL}/items/REVIEW",
-        params={"filter[U_Username][_eq]": username}
-    )
-    return jsonify(r.json())
+    r = requests.get(f"{DIRECTUS_URL}/user_review/")
+    return jsonify(_filter_user_reviews(r.json(), username=username))
 
 
 

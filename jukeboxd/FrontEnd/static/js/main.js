@@ -42,8 +42,12 @@ async function fetchFeedReviews() {
 }
 
 async function fetchUserReviews() {
-    const userId = getCurrentUserId();
-    const url = userId ? `/api/user_reviews?user_id=${encodeURIComponent(userId)}` : "/api/user_reviews";
+    const profileUsername = document.body.dataset.username;
+    const storedUsername = getCurrentUsername();
+    const username = profileUsername || storedUsername;
+    const url = username
+        ? `/api/user_reviews?username=${encodeURIComponent(username)}`
+        : "/api/user_reviews";
     const response = await fetch(url);
     return await response.json();
 }
@@ -207,13 +211,28 @@ async function initHomeFeed() {
 
 async function initProfilePage() {
     const profileReviewList = document.getElementById("profile-review-list");
+    const reviewCount = document.getElementById("profile-reviews");
     if (!profileReviewList) return;
 
     if (!requireLogin()) return;
 
     try {
-        const response = await fetch("/api/user_reviews");
-        const reviews = await response.json();
+        const payload = await fetchUserReviews();
+        const reviews = payload.data || payload;
+
+        if (reviewCount) {
+            reviewCount.textContent = reviews.length;
+        }
+
+        if (!reviews.length) {
+            profileReviewList.innerHTML = `
+                <article class="profile_review_card">
+                    <h3 class="profile_review_headline">No reviews yet</h3>
+                    <p class="profile_review_body">This user has not posted any reviews yet.</p>
+                </article>
+            `;
+            return;
+        }
 
         profileReviewList.innerHTML = reviews.map(createProfileReviewCard).join("");
     } catch (err) {
@@ -560,63 +579,7 @@ async function loadProfile() {
     document.getElementById("profile-handle").textContent = "@" + user.U_Username;
     document.getElementById("profile-genre").textContent = user.U_FavoriteGenre;
     document.getElementById("profile-member").textContent = user.U_DateCreated;
-
-    // Load review count
-    const reviewRes = await fetch(`http://64.23.156.15:8055/items/REVIEW?filter[U_ID][_eq]=${userId}`);
-    const reviewJson = await reviewRes.json();
-    document.getElementById("profile-reviews").textContent = reviewJson.data.length;
 }
-
-async function loadUserReviews() {
-    const userId = document.body.dataset.userId;
-    if (!userId) return;
-
-    const res = await fetch(`http://64.23.156.15:8055/items/user_review?filter[user_id][_eq]=${userId}`);
-    const reviews = await res.json();
-
-    const list = document.getElementById("profile-review-list");
-    list.innerHTML = "";
-
-    reviews.data.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "detail_review_card";
-        card.innerHTML = `
-            <div class="detail_review_head">
-                <h3>${r.title}</h3>
-                <p>${r.review_rating}/10</p>
-            </div>
-            <p>${r.review_text}</p>
-        `;
-        list.appendChild(card);
-    });
-}
-
-async function loadProfileReviews() {
-    const username = document.body.dataset.username;
-    if (!username) return;
-
-    const res = await fetch(`/api/user_reviews/${username}`);
-    const json = await res.json();
-    const reviews = json.data || [];
-
-    const list = document.getElementById("profile-review-list");
-    list.innerHTML = "";
-
-    reviews.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "detail_review_card";
-        card.innerHTML = `
-            <div class="detail_review_head">
-                <h3>${r.R_Title || "Review"}</h3>
-                <p>${r.R_Rating}/10</p>
-            </div>
-            <p>${r.R_Text}</p>
-        `;
-        list.appendChild(card);
-    });
-}
-
-loadProfileReviews();
 
 // -------------------- PAGE INITIALIZER --------------------
 
@@ -629,5 +592,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initLoginPage();
     initRegisterPage();
     loadProfile();
-    loadUserReviews();
 });
