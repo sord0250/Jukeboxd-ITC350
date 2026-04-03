@@ -549,7 +549,7 @@ async function loadProfileReviews() {
 
     const res = await fetch(`/api/user_reviews/${username}`);
     const json = await res.json();
-    const reviews = json.data;
+    const reviews = json.data || [];
 
     const list = document.getElementById("profile-review-list");
     list.innerHTML = "";
