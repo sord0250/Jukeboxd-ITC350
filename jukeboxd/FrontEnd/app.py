@@ -55,6 +55,23 @@ def _filter_user_reviews(payload, username=None, user_id=None):
     return filtered
 
 
+def _extract_api_error(payload, default_message):
+    if isinstance(payload, dict):
+        message = payload.get("message")
+        if isinstance(message, str) and message.strip():
+            return message.strip()
+
+        errors = payload.get("errors")
+        if isinstance(errors, list) and errors:
+            first_error = errors[0]
+            if isinstance(first_error, dict):
+                error_message = first_error.get("message")
+                if isinstance(error_message, str) and error_message.strip():
+                    return error_message.strip()
+
+    return default_message
+
+
 # -----------------------
 # PAGE ROUTES
 # -----------------------
@@ -65,6 +82,8 @@ def home():
 
 @app.route("/search")
 def search():
+    if 'user_id' not in session:
+        return redirect('/login')
     return render_template("search.html")
 
 
@@ -146,6 +165,9 @@ def get_songs():
 # -----------------------
 @app.route("/api/search")
 def api_search():
+    if 'user_id' not in session:
+        return jsonify({"error": "login required"}), 401
+
     q = request.args.get("q")
 
     if not q:
@@ -220,19 +242,33 @@ def add_review():
 # -----------------------
 @app.route("/api/register", methods=["POST"])
 def api_register():
-    data = request.json
+    data = request.get_json(silent=True) or {}
 
-    password = data.get("password")
-    if not password:
-        return jsonify({"success": False, "message": "Password required"}), 400
+    first_name = (data.get("firstName") or "").strip()
+    last_name = (data.get("lastName") or "").strip()
+    username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip()
+    password = data.get("password") or ""
+
+    if not first_name or not last_name or not username or not email or not password:
+        return jsonify({"success": False, "message": "All fields are required."}), 400
+
+    if len(username) < 5:
+        return jsonify({"success": False, "message": "Username must be at least 5 characters."}), 400
+
+    if len(username) > 12:
+        return jsonify({"success": False, "message": "Username must be 12 characters or fewer."}), 400
+
+    if "@" not in email:
+        return jsonify({"success": False, "message": "Please enter a valid email address."}), 400
 
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     user_data = {
-        "U_FName": data.get("firstName"),
-        "U_LName": data.get("lastName"),
-        "U_Username": data.get("username"),
-        "U_Email": data.get("email"),
+        "U_FName": first_name,
+        "U_LName": last_name,
+        "U_Username": username,
+        "U_Email": email,
         "U_PasswordHash": hashed,
         "U_Role": "user"
     }
@@ -244,9 +280,18 @@ def api_register():
     if r.status_code == 200 or r.status_code == 201:
         user_id = result["data"]["U_ID"]
         session['user_id'] = user_id
-        session['username'] = user_data["U_Username"]
+        session['username'] = username
+        return jsonify({"success": True, "message": "Account created.", "data": result.get("data")}), r.status_code
 
-    return jsonify(result), r.status_code
+    error_message = _extract_api_error(result, "Could not create account.")
+    lowered_message = error_message.lower()
+
+    if "u_username" in lowered_message or "username" in lowered_message:
+        error_message = "That username is already taken or does not meet the 5-12 character requirement."
+    elif "u_email" in lowered_message or "email" in lowered_message:
+        error_message = "That email is already in use or invalid."
+
+    return jsonify({"success": False, "message": error_message, "details": result}), r.status_code
 
 
 # -----------------------

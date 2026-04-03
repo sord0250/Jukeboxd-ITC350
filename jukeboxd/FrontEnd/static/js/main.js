@@ -114,6 +114,7 @@ function initSearchPage() {
     const count = document.getElementById("search-count");
 
     if (!input || !resultsContainer || !count) return;
+    if (!requireLogin()) return;
 
     async function renderResults(query = "") {
         const normalizedQuery = query.trim();
@@ -435,7 +436,12 @@ async function registerUser(firstName, lastName, username, email, password) {
         })
     });
 
-    return response.ok;
+    const data = await response.json().catch(() => ({}));
+
+    return {
+        success: response.ok && Boolean(data.success ?? true),
+        message: data.message || (response.ok ? "Account created!" : "Could not create account.")
+    };
 }
 
 function initRegisterPage() {
@@ -447,15 +453,25 @@ function initRegisterPage() {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const firstName = document.getElementById("register-fname").value;
-        const lastName = document.getElementById("register-lname").value;
-        const username = document.getElementById("register-username").value;
-        const email = document.getElementById("register-email").value;
+        const firstName = document.getElementById("register-fname").value.trim();
+        const lastName = document.getElementById("register-lname").value.trim();
+        const username = document.getElementById("register-username").value.trim();
+        const email = document.getElementById("register-email").value.trim();
         const password = document.getElementById("register-password").value;
 
-        const success = await registerUser(firstName, lastName, username, email, password);
+        if (!firstName || !lastName || !username || !email || !password) {
+            message.textContent = "Please fill out every field.";
+            return;
+        }
 
-        if (success) {
+        if (username.length < 5 || username.length > 12) {
+            message.textContent = "Username must be 5-12 characters.";
+            return;
+        }
+
+        const result = await registerUser(firstName, lastName, username, email, password);
+
+        if (result.success) {
             message.textContent = "Account created! Logging in...";
 
             const loginSuccess = await loginUser(email, password);
@@ -464,7 +480,7 @@ function initRegisterPage() {
                 window.location.href = "/";
             }
         } else {
-            message.textContent = "Could not create account.";
+            message.textContent = result.message;
         }
     });
 }

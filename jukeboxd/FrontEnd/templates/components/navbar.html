@@ -4,15 +4,17 @@
             <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}" alt="Jukeboxd home">
         </a>
 
-        <div class="nav-dropdown">
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}" aria-label="Search" title="Search" data-nav-hint="Search">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}" alt="Search">
-            </a>
+        {% if session.get('user_id') %}
+            <div class="nav-dropdown">
+                <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}" aria-label="Search" title="Search" data-nav-hint="Search">
+                    <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}" alt="Search">
+                </a>
 
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}" aria-label="Add review" title="Add review" data-nav-hint="Write">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}" alt="Add review">
-            </a>
-        </div>
+                <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}" aria-label="Add review" title="Add review" data-nav-hint="Write">
+                    <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}" alt="Add review">
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     <!-- Profile dropdown -->
