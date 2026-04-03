@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | jukeboxd</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+</head>
+<body class="add_body">
+    {% include "components/navbar.html" %}
+
+    <main class="add_page">
+        <section class="add_shell">
+            <div class="add_intro">
+                <p class="add_eyebrow">Account</p>
+                <h1 class="add_title">Create an account</h1>
+                <p class="add_subtitle">Join jukeboxd to write reviews, like posts, and track your music.</p>
+            </div>
+
+            <form id="register-form" class="add_form" novalidate>
+
+                <!-- FIRST NAME -->
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">First Name</h2>
+                    </div>
+
+                    <input
+                        id="register-fname"
+                        class="search_input add_search_input"
+                        type="text"
+                        placeholder="First name"
+                        required
+                    >
+                </section>
+
+                <!-- LAST NAME -->
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">Last Name</h2>
+                    </div>
+
+                    <input
+                        id="register-lname"
+                        class="search_input add_search_input"
+                        type="text"
+                        placeholder="Last name"
+                        required
+                    >
+                </section>
+
+                <!-- USERNAME -->
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">Username</h2>
+                        <p class="add_section_copy">This will appear on your reviews.</p>
+                    </div>
+
+                    <input
+                        id="register-username"
+                        class="search_input add_search_input"
+                        type="text"
+                        placeholder="username"
+                        required
+                    >
+                </section>
+
+                <!-- EMAIL -->
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">Email</h2>
+                    </div>
+
+                    <input
+                        id="register-email"
+                        class="search_input add_search_input"
+                        type="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+                </section>
+
+                <!-- PASSWORD -->
+                <section class="add_panel">
+                    <div class="add_panel_header">
+                        <h2 class="add_section_title">Password</h2>
+                    </div>
+
+                    <input
+                        id="register-password"
+                        class="search_input add_search_input"
+                        type="password"
+                        placeholder="Password"
+                        required
+                    >
+                </section>
+
+                <div class="add_actions">
+                    <p id="register-message" class="add_form_message"></p>
+                    <button class="add_submit_button" type="submit">Create account</button>
+                </div>
+
+            </form>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import requests
+import bcrypt
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify
 
@@ -29,6 +30,14 @@ def profile():
 @app.route("/add")
 def add():
     return render_template("add.html")
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
 
 
 @app.route("/stats")
@@ -104,6 +113,70 @@ def add_review():
     print(data)
 
     return jsonify({"status": "success"})
+
+#Rgister User Hash password before sending to Directus
+# REGISTER USER (HASH PASSWORD)
+@app.route("/api/register", methods=["POST"])
+def api_register():
+    data = request.json
+
+    password = data.get("password")
+    if not password:
+        return jsonify({"success": False, "message": "Password required"}), 400
+
+    # Hash password
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    user_data = {
+        "U_FName": data.get("firstName"),
+        "U_LName": data.get("lastName"),
+        "U_Username": data.get("username"),
+        "U_Email": data.get("email"),
+        "U_PasswordHash": hashed,
+        "U_Role": "user"
+    }
+
+    r = requests.post(f"{DIRECTUS_URL}/items/USER", json=user_data)
+
+    return jsonify(r.json()), r.status_code
+
+# LOGIN USER (CHECK HASH)
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"success": False})
+
+    # Get user from Directus
+    r = requests.get(
+        f"{DIRECTUS_URL}/items/USER",
+        params={"filter[U_Email][_eq]": email}
+    )
+
+    users = r.json().get("data", [])
+
+    if not users:
+        return jsonify({"success": False})
+
+    user = users[0]
+    stored_hash = user.get("U_PasswordHash")
+
+    if not stored_hash:
+        return jsonify({"success": False})
+
+    # Compare password with hash
+    if bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
+        return jsonify({
+            "success": True,
+            "user_id": user.get("U_ID"),
+            "username": user.get("U_Username"),
+            "email": user.get("U_Email")
+        })
+
+    return jsonify({"success": False})
 
 if __name__ == "__main__":
     app.run(debug=True)

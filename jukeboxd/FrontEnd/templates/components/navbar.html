@@ -1,20 +1,28 @@
 <nav class="navbar">
     <div class="nav-menu">
-        <a class="nav-link nav-logo-link" href="{{ url_for('home') }}" aria-label="Home">
-            <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}" alt="jb_logo">
+        <a class="nav-link nav-logo-link" href="{{ url_for('home') }}">
+            <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}">
         </a>
-        <div class="nav-dropdown" aria-label="Quick navigation">
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}" aria-label="Search">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}" alt="jb_search">
+
+        <div class="nav-dropdown">
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}">
+                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}">
             </a>
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}" aria-label="Add">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}" alt="jb_add">
+
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}">
+                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}">
             </a>
-            <!-- <a class="nav-link nav-dropdown-link" href="{{ url_for('stats') }}" aria-label="Messages"><img class="nav-icon" src="{{ url_for('static', filename='img/jb_chat.png') }}" alt="jb_stats"></a> -->
         </div>
     </div>
 
-    <a class="nav-link nav-profile-link" href="{{ url_for('profile') }}" aria-label="Profile">
-        <img class="nav-icon nav-icon-profile" src="{{ url_for('static', filename='img/jb_profile.png') }}" alt="jb_profile">
-    </a>
+    <!-- Profile dropdown -->
+    <div class="nav-menu">
+        <a class="nav-link nav-profile-link" href="/profile">
+            <img class="nav-icon nav-icon-profile" src="{{ url_for('static', filename='img/jb_profile.png') }}">
+        </a>
+
+        <div class="nav-dropdown" id="nav-account-dropdown">
+            <!-- Filled by JS -->
+        </div>
+    </div>
 </nav>
