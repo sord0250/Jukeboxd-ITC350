@@ -6,7 +6,7 @@
     <title>Profile | jukeboxd</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
-<body class="profile_body">
+<body class="profile_body" data-user-id="{{ user_id }}" data-username="{{ username }}">
     {% include "components/navbar.html" %}
 
     <main class="profile_page">
@@ -16,8 +16,8 @@
                     <img class="profile_page_avatar" src="{{ url_for('static', filename='img/jb_profile_pic.png') }}" alt="profile picture">
                     <div class="profile_identity_copy">
                         <p class="profile_label">Profile</p>
-                        <h1 class="profile_name">spencer_ord</h1>
-                        <p class="profile_handle">@spencer_ord</p>
+                        <h1 id="profile-name" class="profile_name"></h1>
+                        <p id="profile-handle" class="profile_handle"></p>
                     </div>
                 </div>
 
@@ -26,15 +26,15 @@
                     <dl class="profile_info_list">
                         <div class="profile_info_row">
                             <dt>Favorite genre</dt>
-                            <dd>Indie Folk</dd>
+                            <dd id="profile-genre"></dd>
                         </div>
                         <div class="profile_info_row">
-                            <dt>Reviews written</dt>
+                            <dd id="profile-reviews"></dd>
                             <dd>8</dd>
                         </div>
                         <div class="profile_info_row">
                             <dt>Member since</dt>
-                            <dd>March 2026</dd>
+                            <dd id="profile-member"></dd>
                         </div>
                     </dl>
                 </div>

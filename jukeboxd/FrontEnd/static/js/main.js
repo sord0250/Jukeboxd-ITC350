@@ -338,7 +338,7 @@ function initAddPage() {
             } else {
                 message.textContent = data?.errors?.[0]?.message || "Could not submit review.";
             }
-            
+
         const results = await fetchSearch(normalizedQuery);
         console.log("Search results:", results);
 
@@ -498,6 +498,78 @@ function initNavbarAccount() {
     }
 }
 
+// -------------------- LOAD PROFILE DATA --------------------
+
+async function loadProfile() {
+    const userId = document.body.dataset.userId;
+    if (!userId) return;
+
+    const res = await fetch(`http://64.23.156.15:8055/items/USER/${userId}`);
+    const json = await res.json();
+    const user = json.data;
+
+    document.getElementById("profile-name").textContent = user.U_Username;
+    document.getElementById("profile-handle").textContent = "@" + user.U_Username;
+    document.getElementById("profile-genre").textContent = user.U_FavoriteGenre;
+    document.getElementById("profile-member").textContent = user.U_DateCreated;
+
+    // Load review count
+    const reviewRes = await fetch(`http://64.23.156.15:8055/items/REVIEW?filter[U_ID][_eq]=${userId}`);
+    const reviewJson = await reviewRes.json();
+    document.getElementById("profile-reviews").textContent = reviewJson.data.length;
+}
+
+async function loadUserReviews() {
+    const userId = document.body.dataset.userId;
+    if (!userId) return;
+
+    const res = await fetch(`http://64.23.156.15:8055/items/user_review?filter[user_id][_eq]=${userId}`);
+    const reviews = await res.json();
+
+    const list = document.getElementById("profile-review-list");
+    list.innerHTML = "";
+
+    reviews.data.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "detail_review_card";
+        card.innerHTML = `
+            <div class="detail_review_head">
+                <h3>${r.title}</h3>
+                <p>${r.review_rating}/10</p>
+            </div>
+            <p>${r.review_text}</p>
+        `;
+        list.appendChild(card);
+    });
+}
+
+async function loadProfileReviews() {
+    const username = document.body.dataset.username;
+    if (!username) return;
+
+    const res = await fetch(`/api/user_reviews/${username}`);
+    const json = await res.json();
+    const reviews = json.data;
+
+    const list = document.getElementById("profile-review-list");
+    list.innerHTML = "";
+
+    reviews.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "detail_review_card";
+        card.innerHTML = `
+            <div class="detail_review_head">
+                <h3>${r.R_Title || "Review"}</h3>
+                <p>${r.R_Rating}/10</p>
+            </div>
+            <p>${r.R_Text}</p>
+        `;
+        list.appendChild(card);
+    });
+}
+
+loadProfileReviews();
+
 // -------------------- PAGE INITIALIZER --------------------
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -508,4 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initAddPage();
     initLoginPage();
     initRegisterPage();
+    loadProfile();
+    loadUserReviews();
 });

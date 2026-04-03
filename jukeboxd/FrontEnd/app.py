@@ -1,7 +1,7 @@
 import requests
 import bcrypt
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -11,29 +11,48 @@ app = Flask(
     static_folder=str(BASE_DIR / "static"),
 )
 
-#robert change
+# IMPORTANT: Needed for sessions
+app.secret_key = "super_secret_key_change_this"
+
 DIRECTUS_URL = "http://64.23.156.15:8055"
 
 
+# -----------------------
+# PAGE ROUTES
+# -----------------------
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 @app.route("/search")
 def search():
     return render_template("search.html")
 
-@app.route("/profile")
+
+@app.route('/profile')
 def profile():
-    return render_template("profile.html")
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    return render_template(
+        'profile.html',
+        user_id=session['user_id'],
+        username=session['username']
+    )
+
 
 @app.route("/add")
 def add():
+    if 'user_id' not in session:
+        return redirect('/login')
     return render_template("add.html")
+
 
 @app.route("/login")
 def login():
     return render_template("login.html")
+
 
 @app.route("/register")
 def register():
@@ -44,33 +63,49 @@ def register():
 def stats():
     return render_template("stats.html")
 
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
+# -----------------------
 # TABLE ENDPOINTS
+# -----------------------
 @app.route("/api/artists")
 def get_artists():
     r = requests.get(f"{DIRECTUS_URL}/items/ARTIST")
     return jsonify(r.json())
+
 
 @app.route("/api/albums")
 def get_albums():
     r = requests.get(f"{DIRECTUS_URL}/items/ALBUM")
     return jsonify(r.json())
 
+
 @app.route("/api/users")
 def get_users():
     r = requests.get(f"{DIRECTUS_URL}/items/USER")
     return jsonify(r.json())
+
 
 @app.route("/api/reviews")
 def get_reviews():
     r = requests.get(f"{DIRECTUS_URL}/items/REVIEW")
     return jsonify(r.json())
 
+
 @app.route("/api/songs")
 def get_songs():
     r = requests.get(f"{DIRECTUS_URL}/items/SONG")
     return jsonify(r.json())
 
+
+# -----------------------
 # SEARCH
+# -----------------------
 @app.route("/api/search")
 def api_search():
     q = request.args.get("q")
@@ -81,53 +116,65 @@ def api_search():
     try:
         r = requests.get(f"{DIRECTUS_URL}/search", params={"q": q})
         data = r.json()
-        print("Directus search response:", data)
-
         return jsonify(data)
 
     except Exception as e:
         print("Search error:", e)
         return jsonify([])
 
+
+# -----------------------
 # REVIEWS BY TYPE
+# -----------------------
 @app.route("/api/song_reviews")
 def song_reviews():
     r = requests.get(f"{DIRECTUS_URL}/song_review/")
     return jsonify(r.json())
+
 
 @app.route("/api/album_reviews")
 def album_reviews():
     r = requests.get(f"{DIRECTUS_URL}/album_reviews/")
     return jsonify(r.json())
 
+
 @app.route("/api/artist_reviews")
 def artist_reviews():
     r = requests.get(f"{DIRECTUS_URL}/artist_review/")
     return jsonify(r.json())
+
 
 @app.route("/api/user_reviews")
 def user_reviews():
     r = requests.get(f"{DIRECTUS_URL}/user_review/")
     return jsonify(r.json())
 
-#Feed review endpoint
+
+# Feed review endpoint
 @app.route("/api/feed")
 def feed():
     r = requests.get(f"{DIRECTUS_URL}/feed_review")
     return jsonify(r.json())
 
-# Add review endpoint
+
+# -----------------------
+# ADD REVIEW
+# -----------------------
 @app.route("/api/add_review", methods=["POST"])
 def add_review():
+    if 'username' not in session:
+        return jsonify({"status": "not logged in"}), 401
+
     data = request.json
+    data["U_Username"] = session['username']
 
-    # send to Directus or insert into DB
-    print(data)
+    r = requests.post(f"{DIRECTUS_URL}/items/REVIEW", json=data)
+    return jsonify(r.json())
 
-    return jsonify({"status": "success"})
 
-#Rgister User Hash password before sending to Directus
-# REGISTER USER (HASH PASSWORD)
+# -----------------------
+# REGISTER USER
+# -----------------------
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.json
@@ -136,7 +183,6 @@ def api_register():
     if not password:
         return jsonify({"success": False, "message": "Password required"}), 400
 
-    # Hash password
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     user_data = {
@@ -149,10 +195,20 @@ def api_register():
     }
 
     r = requests.post(f"{DIRECTUS_URL}/items/USER", json=user_data)
+    result = r.json()
 
-    return jsonify(r.json()), r.status_code
+    # AUTO LOGIN AFTER REGISTER
+    if r.status_code == 200 or r.status_code == 201:
+        user_id = result["data"]["U_ID"]
+        session['user_id'] = user_id
+        session['username'] = user_data["U_Username"]
 
-# LOGIN USER (CHECK HASH)
+    return jsonify(result), r.status_code
+
+
+# -----------------------
+# LOGIN USER
+# -----------------------
 @app.route("/api/login", methods=["POST"])
 def api_login():
     data = request.json
@@ -162,7 +218,6 @@ def api_login():
     if not email or not password:
         return jsonify({"success": False})
 
-    # Get user from Directus
     r = requests.get(
         f"{DIRECTUS_URL}/items/USER",
         params={"filter[U_Email][_eq]": email}
@@ -179,8 +234,11 @@ def api_login():
     if not stored_hash:
         return jsonify({"success": False})
 
-    # Compare password with hash
     if bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
+        # STORE SESSION HERE
+        session['user_id'] = user.get("U_ID")
+        session['username'] = user.get("U_Username")
+
         return jsonify({
             "success": True,
             "user_id": user.get("U_ID"),
@@ -189,6 +247,16 @@ def api_login():
         })
 
     return jsonify({"success": False})
+
+@app.route("/api/user_reviews/<username>")
+def get_user_reviews(username):
+    r = requests.get(
+        f"{DIRECTUS_URL}/items/REVIEW",
+        params={"filter[U_Username][_eq]": username}
+    )
+    return jsonify(r.json())
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
