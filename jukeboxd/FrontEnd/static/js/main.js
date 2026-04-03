@@ -234,7 +234,7 @@ function initAddPage() {
         if (!card) return;
 
         selectedItem = {
-            id: Number(card.dataset.itemId),
+            id: card.dataset.itemId,
             type: card.dataset.itemType,
             title: card.dataset.itemTitle
         };
@@ -302,18 +302,19 @@ function initAddPage() {
         };
 
         if (selectedItem.type === "song") {
-            reviewData.S_ID = selectedItem.id;
+            reviewData.S_ID = Number(selectedItem.id);
         }
         if (selectedItem.type === "album") {
-            reviewData.AL_ID = selectedItem.id;
+            reviewData.AL_ID = Number(selectedItem.id);
         }
         if (selectedItem.type === "artist") {
-            reviewData.ART_ID = selectedItem.id;
+            reviewData.ART_ID = Number(selectedItem.id);
         }
 
         console.log("Posting review:", reviewData);
 
         try {
+
             const response = await fetch(DIRECTUS_URL + "/items/REVIEW", {
                 method: "POST",
                 headers: {
@@ -337,6 +338,9 @@ function initAddPage() {
             } else {
                 message.textContent = data?.errors?.[0]?.message || "Could not submit review.";
             }
+            
+        const results = await fetchSearch(normalizedQuery);
+        console.log("Search results:", results);
 
         } catch (err) {
             console.error(err);

@@ -74,8 +74,20 @@ def get_songs():
 @app.route("/api/search")
 def api_search():
     q = request.args.get("q")
-    r = requests.get(f"{DIRECTUS_URL}/search?q={q}")
-    return jsonify(r.json())
+
+    if not q:
+        return jsonify([])
+
+    try:
+        r = requests.get(f"{DIRECTUS_URL}/search", params={"q": q})
+        data = r.json()
+        print("Directus search response:", data)
+
+        return jsonify(data)
+
+    except Exception as e:
+        print("Search error:", e)
+        return jsonify([])
 
 # REVIEWS BY TYPE
 @app.route("/api/song_reviews")
