@@ -11,6 +11,19 @@
     {% include "components/navbar.html" %}
 
     <main class="feed_page">
+        <section class="feed_welcome">
+            <h1 class="feed_welcome_title">Welcome to Jukeboxd</h1>
+            <p class="feed_welcome_copy">
+                A polished home for thoughtful music discovery, sharp opinions, and the records worth talking about.
+                Settle in, explore the feed, and see what is resonating with the community right now.
+            </p>
+            <div class="feed_filter_bar" role="tablist" aria-label="Filter feed reviews">
+                <button class="feed_filter_button is-active" type="button" data-feed-filter="all" aria-pressed="true">All</button>
+                <button class="feed_filter_button" type="button" data-feed-filter="album" aria-pressed="false">Album</button>
+                <button class="feed_filter_button" type="button" data-feed-filter="song" aria-pressed="false">Song</button>
+                <button class="feed_filter_button" type="button" data-feed-filter="artist" aria-pressed="false">Artist</button>
+            </div>
+        </section>
         <section id="feed-list" class="feed_list" aria-live="polite"></section>
     </main>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

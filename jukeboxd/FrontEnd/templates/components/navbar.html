@@ -1,24 +1,24 @@
 <nav class="navbar">
     <div class="nav-menu">
-        <a class="nav-link nav-logo-link" href="{{ url_for('home') }}">
-            <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}">
+        <a class="nav-link nav-logo-link" href="{{ url_for('home') }}" aria-label="Home feed" title="Home feed" data-nav-hint="Home">
+            <img class="nav-icon nav-icon-home" src="{{ url_for('static', filename='img/jb_logo.png') }}" alt="Jukeboxd home">
         </a>
 
         <div class="nav-dropdown">
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}">
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('search') }}" aria-label="Search" title="Search" data-nav-hint="Search">
+                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_search.png') }}" alt="Search">
             </a>
 
-            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}">
-                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}">
+            <a class="nav-link nav-dropdown-link" href="{{ url_for('add') }}" aria-label="Add review" title="Add review" data-nav-hint="Write">
+                <img class="nav-icon" src="{{ url_for('static', filename='img/jb_add.png') }}" alt="Add review">
             </a>
         </div>
     </div>
 
     <!-- Profile dropdown -->
     <div class="nav-menu">
-        <a class="nav-link nav-profile-link" href="/profile">
-            <img class="nav-icon nav-icon-profile" src="{{ url_for('static', filename='img/jb_profile.png') }}">
+        <a class="nav-link nav-profile-link" href="/profile" aria-label="Profile" title="Profile" data-nav-hint="Profile">
+            <img class="nav-icon nav-icon-profile" src="{{ url_for('static', filename='img/jb_profile.png') }}" alt="Profile">
         </a>
 
         <div class="nav-dropdown" id="nav-account-dropdown">

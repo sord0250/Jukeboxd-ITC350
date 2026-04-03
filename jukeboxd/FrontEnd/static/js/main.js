@@ -48,6 +48,9 @@ async function fetchUserReviews() {
     return await response.json();
 }
 
+let allFeedReviews = [];
+let activeFeedFilter = "all";
+
 // -------------------- CARD BUILDERS --------------------
 
 function createFeedCard(entry, index = 0) {
@@ -141,15 +144,60 @@ function initSearchPage() {
 
 async function initHomeFeed() {
     const feedList = document.getElementById("feed-list");
+    const filterButtons = Array.from(document.querySelectorAll(".feed_filter_button"));
     if (!feedList) return;
 
-    try {
-        const response = await fetch("/api/feed");
-        const reviews = await response.json();
+    function normalizeFeedType(value) {
+        return String(value || "").trim().toLowerCase();
+    }
+
+    function getFilteredReviews() {
+        if (activeFeedFilter === "all") {
+            return allFeedReviews;
+        }
+
+        return allFeedReviews.filter((entry) => normalizeFeedType(entry.review_type) === activeFeedFilter);
+    }
+
+    function updateFilterButtons() {
+        filterButtons.forEach((button) => {
+            const isActive = button.dataset.feedFilter === activeFeedFilter;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+    }
+
+    function renderFeed() {
+        const reviews = getFilteredReviews();
+
+        if (!reviews.length) {
+            feedList.innerHTML = `
+                <article class="detail_review_card">
+                    <h3 class="detail_review_title">No reviews yet</h3>
+                    <p class="detail_review_snippet">There are no ${activeFeedFilter === "all" ? "" : activeFeedFilter + " "}reviews to show right now.</p>
+                </article>
+            `;
+            return;
+        }
 
         feedList.innerHTML = reviews
             .map((entry, index) => createFeedCard(entry, index))
             .join("");
+    }
+
+    filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            activeFeedFilter = button.dataset.feedFilter || "all";
+            updateFilterButtons();
+            renderFeed();
+        });
+    });
+
+    try {
+        const response = await fetch("/api/feed");
+        allFeedReviews = await response.json();
+        updateFilterButtons();
+        renderFeed();
     } catch (err) {
         console.error("Feed load error:", err);
     }
@@ -474,8 +522,8 @@ function initNavbarAccount() {
 
     if (userId) {
         dropdown.innerHTML = `
-            <a class="nav-link nav-dropdown-link" href="/login" id="logout-button" aria-label="Logout">
-                <img class="nav-icon" src="/static/img/jb_logout.png" alt="logout">
+            <a class="nav-link nav-dropdown-link" href="/login" id="logout-button" aria-label="Logout" title="Logout" data-nav-hint="Logout">
+                <img class="nav-icon" src="/static/img/jb_logout.svg" alt="logout">
             </a>
         `;
 
@@ -488,11 +536,11 @@ function initNavbarAccount() {
         }
     } else {
         dropdown.innerHTML = `
-            <a class="nav-link nav-dropdown-link" href="/login" aria-label="Login">
-                <img class="nav-icon" src="/static/img/jb_login.png" alt="login">
+            <a class="nav-link nav-dropdown-link" href="/login" aria-label="Login" title="Login" data-nav-hint="Login">
+                <img class="nav-icon" src="/static/img/jb_login.svg" alt="login">
             </a>
-            <a class="nav-link nav-dropdown-link" href="/register" aria-label="Register">
-                <img class="nav-icon" src="/static/img/jb_register.png" alt="register">
+            <a class="nav-link nav-dropdown-link" href="/register" aria-label="Register" title="Register" data-nav-hint="Register">
+                <img class="nav-icon" src="/static/img/jb_register.svg" alt="register">
             </a>
         `;
     }

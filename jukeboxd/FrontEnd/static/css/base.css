@@ -9,12 +9,14 @@
         background-position: top center; /* Centers the image */
         background-attachment: fixed;
         background-color: #FEF7E1; /* Fallback color if image doesn't load */
-        padding-top: 124px;
+        margin: 0;
+        padding-top: 18px;
         padding-left: 24px;
         padding-right: 24px;
         font-family: sans-serif;
-        height: 100vh;
-        overflow: hidden;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
         box-sizing: border-box;
     }
 
@@ -65,6 +67,31 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
+    .nav-link[data-nav-hint] {
+        position: relative;
+    }
+
+    .nav-link[data-nav-hint]::after {
+        content: attr(data-nav-hint);
+        position: absolute;
+        left: 50%;
+        bottom: -12px;
+        transform: translate(-50%, 6px);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(47, 38, 34, 0.92);
+        color: #fffdf8;
+        font-size: 0.7rem;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        box-shadow: 0 10px 18px rgba(48, 35, 22, 0.16);
+    }
+
     .nav-logo-link,
     .nav-profile-link {
         width: 92px;
@@ -101,8 +128,11 @@
 
     .nav-dropdown-link {
         width: 64px;
-        height: 64px;
+        min-height: 64px;
         text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .nav-icon {
@@ -127,11 +157,35 @@
         transform: scale(1.12);
     }
 
+    .nav-link[data-nav-hint]:hover::after,
+    .nav-link[data-nav-hint]:focus-visible::after {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
     .nav-logo-link:hover,
     .nav-logo-link:focus-visible,
     .nav-profile-link:hover,
     .nav-profile-link:focus-visible {
         box-shadow: 0 20px 44px rgba(48, 35, 22, 0.22);
+        transform: translateY(-2px);
+    }
+
+    .nav-logo-link::before,
+    .nav-profile-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 2px solid rgba(78, 88, 121, 0);
+        transition: border-color 0.18s ease;
+    }
+
+    .nav-logo-link:hover::before,
+    .nav-logo-link:focus-visible::before,
+    .nav-profile-link:hover::before,
+    .nav-profile-link:focus-visible::before {
+        border-color: rgba(78, 88, 121, 0.22);
     }
 
     .nav-link:focus-visible {
@@ -196,12 +250,12 @@
 
         .nav-dropdown-link {
             width: 56px;
-            height: 56px;
+            min-height: 56px;
         }
     }
 
     .review_card {
-        margin: 28px auto;
+        margin: 0;
         width: min(980px, 100%);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #ffffff 100%);
         border: 1px solid rgba(88, 72, 62, 0.08);
@@ -213,18 +267,72 @@
     .feed_page {
         width: min(1040px, 100%);
         margin: 0 auto;
-        height: 100vh;
-        overflow-y: auto;
-        padding-top: 124px;
+        min-height: calc(100vh - 18px);
+        padding-top: 0;
         padding-bottom: 24px;
         box-sizing: border-box;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        overscroll-behavior: contain;
     }
 
-    .feed_page::-webkit-scrollbar {
-        display: none;
+    .feed_welcome {
+        margin-bottom: 22px;
+        padding: 30px 32px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 251, 244, 0.98) 100%);
+        border: 1px solid rgba(88, 72, 62, 0.08);
+        border-radius: 30px;
+        box-shadow: 0 22px 40px rgba(48, 35, 22, 0.1);
+    }
+
+    .feed_welcome_title {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 4.25rem);
+        line-height: 0.96;
+        letter-spacing: -0.05em;
+        color: #2f2622;
+    }
+
+    .feed_welcome_copy {
+        margin: 18px 0 0;
+        font-size: 1rem;
+        line-height: 1.75;
+        color: #64554d;
+    }
+
+    .feed_filter_bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .feed_filter_button {
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid rgba(88, 72, 62, 0.12);
+        border-radius: 999px;
+        background: rgba(255, 252, 247, 0.92);
+        color: #5f5149;
+        font-size: 0.84rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .feed_filter_button:hover,
+    .feed_filter_button:focus-visible {
+        border-color: rgba(78, 88, 121, 0.34);
+        color: #3c4665;
+        box-shadow: 0 10px 18px rgba(48, 35, 22, 0.08);
+        outline: none;
+        transform: translateY(-1px);
+    }
+
+    .feed_filter_button.is-active {
+        background: #4e5879;
+        border-color: #4e5879;
+        color: #ffffff;
+        box-shadow: 0 12px 22px rgba(78, 88, 121, 0.2);
     }
 
     .feed_list {
@@ -235,18 +343,10 @@
     .profile_page {
         width: min(1180px, 100%);
         margin: 0 auto;
-        height: calc(100vh - 18px);
-        margin-top: 0;
-        overflow: hidden;
+        min-height: calc(100vh - 18px);
         padding-top: 0;
         padding-bottom: 24px;
         box-sizing: border-box;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    .profile_page::-webkit-scrollbar {
-        display: none;
     }
 
     .profile_layout {
@@ -369,14 +469,8 @@
 
     .profile_reviews_panel {
         padding: 24px;
-        height: calc(100vh - 42px);
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    .profile_reviews_panel::-webkit-scrollbar {
-        display: none;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .profile_reviews_header {
@@ -401,6 +495,7 @@
     .profile_review_list {
         display: grid;
         gap: 16px;
+        min-width: 0;
     }
 
     .profile_review_card {
@@ -649,6 +744,11 @@
             border-radius: 20px;
         }
 
+        .feed_welcome {
+            padding: 24px 20px;
+            border-radius: 24px;
+        }
+
         .vinyl_image {
             width: 266px;
             height: 250px;
@@ -746,6 +846,7 @@
         border: 1px solid rgba(76, 60, 51, 0.18);
         border-radius: 22px;
         padding: 0 24px;
+        box-sizing: border-box;
         font-size: 1.08rem;
         color: #2f2622;
         background: rgba(255, 255, 255, 0.88);
@@ -1001,6 +1102,7 @@
         border: 1px solid rgba(67, 54, 48, 0.12);
         border-radius: 20px;
         background: rgba(255, 255, 255, 0.86);
+        box-sizing: border-box;
         text-align: left;
         cursor: pointer;
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -1135,6 +1237,7 @@
         border: 1px solid rgba(67, 54, 48, 0.1);
         background: rgba(255, 255, 255, 0.78);
         box-shadow: 0 12px 22px rgba(48, 35, 22, 0.05);
+        box-sizing: border-box;
     }
 
     .add_panel_header {
