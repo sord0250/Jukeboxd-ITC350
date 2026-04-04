@@ -94,12 +94,87 @@ def _resolve_media_url(value):
     return media_url
 
 
-def _build_review_enrichment(review_payload, song_payload, album_payload, artist_payload):
+def _build_artist_name_maps(song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
+    song_rows, _ = _extract_payload_list(song_payload)
+    artist_rows, _ = _extract_payload_list(artist_payload)
+    makes_song_rows, _ = _extract_payload_list(makes_song_payload)
+    makes_album_rows, _ = _extract_payload_list(makes_album_payload)
+
+    artist_name_lookup = {}
+    for artist in artist_rows:
+        artist_id = artist.get("ART_ID") or artist.get("id")
+        if artist_id is None:
+            continue
+        artist_name_lookup[str(artist_id)] = artist.get("ART_Name")
+
+    song_album_map = {}
+    for song in song_rows:
+        song_id = song.get("S_ID") or song.get("id")
+        if song_id is None:
+            continue
+        song_album_map[str(song_id)] = song.get("AL_ID")
+
+    album_artist_names_map = {}
+    for row in makes_album_rows:
+        album_id = row.get("AL_ID")
+        artist_id = row.get("ART_ID")
+        if album_id is None or artist_id is None:
+            continue
+        artist_name = artist_name_lookup.get(str(artist_id))
+        if not artist_name:
+            continue
+        album_artist_names_map.setdefault(str(album_id), [])
+        if artist_name not in album_artist_names_map[str(album_id)]:
+            album_artist_names_map[str(album_id)].append(artist_name)
+
+    song_artist_names_map = {}
+    for row in makes_song_rows:
+        song_id = row.get("S_ID")
+        artist_id = row.get("ART_ID")
+        if song_id is None or artist_id is None:
+            continue
+        artist_name = artist_name_lookup.get(str(artist_id))
+        if not artist_name:
+            continue
+        song_artist_names_map.setdefault(str(song_id), [])
+        if artist_name not in song_artist_names_map[str(song_id)]:
+            song_artist_names_map[str(song_id)].append(artist_name)
+
+    for song_id, album_id in song_album_map.items():
+        if song_artist_names_map.get(song_id):
+            continue
+        if album_id is None:
+            continue
+        album_artist_names = album_artist_names_map.get(str(album_id), [])
+        if album_artist_names:
+            song_artist_names_map[song_id] = list(album_artist_names)
+
+    return (
+        {
+            song_id: ", ".join(names)
+            for song_id, names in song_artist_names_map.items()
+            if names
+        },
+        {
+            album_id: ", ".join(names)
+            for album_id, names in album_artist_names_map.items()
+            if names
+        }
+    )
+
+
+def _build_review_enrichment(review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     review_rows, _ = _extract_payload_list(review_payload)
     song_rows, _ = _extract_payload_list(song_payload)
     album_rows, _ = _extract_payload_list(album_payload)
     artist_rows, _ = _extract_payload_list(artist_payload)
-
+    song_artist_names_map, album_artist_names_map = _build_artist_name_maps(
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
     song_album_map = {}
     for song in song_rows:
         song_id = song.get("S_ID") or song.get("id")
@@ -140,19 +215,22 @@ def _build_review_enrichment(review_payload, song_payload, album_payload, artist
         review_enrichment[str(review_id)] = {
             "num_likes": _coerce_like_count(review.get("R_NumOfLikes")),
             "artwork_url": _resolve_media_url(album.get("AL_Image")) or _resolve_media_url(artist.get("ART_Image")),
-            "artwork_alt": album.get("AL_Name") or artist.get("ART_Name")
+            "artwork_alt": album.get("AL_Name") or artist.get("ART_Name"),
+            "artist_names": song_artist_names_map.get(str(song_id)) if song_id is not None else album_artist_names_map.get(str(album_id))
         }
 
     return review_enrichment
 
 
-def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_payload, artist_payload):
+def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     feed_rows, container_key = _extract_payload_list(feed_payload)
     review_enrichment = _build_review_enrichment(
         review_payload,
         song_payload,
         album_payload,
-        artist_payload
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
     )
 
     normalized_rows = []
@@ -171,12 +249,14 @@ def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_pa
             )
             normalized_row["artwork_url"] = enrichment.get("artwork_url")
             normalized_row["artwork_alt"] = enrichment.get("artwork_alt") or row.get("title")
+            normalized_row["artist_names"] = enrichment.get("artist_names")
         else:
             normalized_row["num_likes"] = _coerce_like_count(
                 row.get("num_likes", row.get("review_num_likes", row.get("R_NumOfLikes")))
             )
             normalized_row["artwork_url"] = None
             normalized_row["artwork_alt"] = row.get("title")
+            normalized_row["artist_names"] = None
 
         normalized_rows.append(normalized_row)
 
@@ -188,12 +268,19 @@ def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_pa
     return normalized_rows
 
 
-def _normalize_user_feed_payload(user_payload, review_payload, song_payload, album_payload, artist_payload):
+def _normalize_user_feed_payload(user_payload, review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     user_rows, container_key = _extract_payload_list(user_payload)
     review_rows, _ = _extract_payload_list(review_payload)
     song_rows, _ = _extract_payload_list(song_payload)
     album_rows, _ = _extract_payload_list(album_payload)
     artist_rows, _ = _extract_payload_list(artist_payload)
+    song_artist_names_map, album_artist_names_map = _build_artist_name_maps(
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
 
     review_map = {}
     for review in review_rows:
@@ -246,6 +333,7 @@ def _normalize_user_feed_payload(user_payload, review_payload, song_payload, alb
         review_type = "review"
         title = "Untitled Review"
         album_name = None
+        artist_names = None
         artwork_url = None
         artwork_alt = None
 
@@ -253,12 +341,14 @@ def _normalize_user_feed_payload(user_payload, review_payload, song_payload, alb
             review_type = "song"
             title = matched_song.get("S_Name", title)
             album_name = matched_album.get("AL_Name")
+            artist_names = song_artist_names_map.get(str(song_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
         elif album_id is not None and matched_album:
             review_type = "album"
             title = matched_album.get("AL_Name", title)
             album_name = matched_album.get("AL_Name")
+            artist_names = album_artist_names_map.get(str(album_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name")
         elif artist_id is not None and matched_artist:
@@ -281,6 +371,7 @@ def _normalize_user_feed_payload(user_payload, review_payload, song_payload, alb
         normalized_row["review_type"] = review_type
         normalized_row["title"] = title
         normalized_row["album_name"] = album_name
+        normalized_row["artist_names"] = artist_names
         normalized_row["artwork_url"] = artwork_url
         normalized_row["artwork_alt"] = artwork_alt or title
         normalized_rows.append(normalized_row)
@@ -333,6 +424,8 @@ def _normalize_user_profile_reviews(
     song_payload,
     album_payload,
     artist_payload,
+    makes_song_payload,
+    makes_album_payload,
     song_review_payload,
     album_review_payload,
     artist_review_payload
@@ -342,7 +435,13 @@ def _normalize_user_profile_reviews(
     song_rows, _ = _extract_payload_list(song_payload)
     album_rows, _ = _extract_payload_list(album_payload)
     artist_rows, _ = _extract_payload_list(artist_payload)
-
+    song_artist_names_map, album_artist_names_map = _build_artist_name_maps(
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
     review_map = {}
     for review in review_rows:
         review_id = review.get("R_ID") or review.get("review_id")
@@ -402,6 +501,7 @@ def _normalize_user_profile_reviews(
         review_type = "review"
         title = "Untitled Review"
         album_name = None
+        artist_names = None
         artwork_url = None
         artwork_alt = None
 
@@ -414,12 +514,14 @@ def _normalize_user_profile_reviews(
                 matched_album = album_map.get(str(fallback_album_id), {})
 
             album_name = matched_album.get("AL_Name") or fallback_song_review.get("AL_Name")
+            artist_names = song_artist_names_map.get(str(song_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or fallback_song_review.get("S_Name")
         elif album_id is not None or fallback_album_review:
             review_type = "album"
             title = matched_album.get("AL_Name") or fallback_album_review.get("name") or title
             album_name = matched_album.get("AL_Name") or fallback_album_review.get("name")
+            artist_names = album_artist_names_map.get(str(album_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or fallback_album_review.get("name")
         elif artist_id is not None or fallback_artist_review:
@@ -442,6 +544,7 @@ def _normalize_user_profile_reviews(
             "review_type": review_type,
             "title": title,
             "album_name": album_name,
+            "artist_names": artist_names,
             "artwork_url": artwork_url,
             "artwork_alt": artwork_alt or title
         })
@@ -459,12 +562,18 @@ def _normalize_user_profile_reviews(
     return normalized_rows
 
 
-def _normalize_review_records(review_payload, song_payload, album_payload, artist_payload):
+def _normalize_review_records(review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     review_rows, container_key = _extract_payload_list(review_payload)
     song_rows, _ = _extract_payload_list(song_payload)
     album_rows, _ = _extract_payload_list(album_payload)
     artist_rows, _ = _extract_payload_list(artist_payload)
-
+    song_artist_names_map, album_artist_names_map = _build_artist_name_maps(
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
     song_map = {}
     for song in song_rows:
         song_id = song.get("S_ID") or song.get("id")
@@ -507,6 +616,7 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
         title = "Untitled Review"
         genre = None
         album_name = None
+        artist_names = None
         artwork_url = None
         artwork_alt = None
 
@@ -515,6 +625,7 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
             title = matched_song.get("S_Name", title)
             genre = matched_song.get("S_Genre")
             album_name = matched_album.get("AL_Name")
+            artist_names = song_artist_names_map.get(str(song_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
         elif album_id is not None and matched_album:
@@ -522,6 +633,7 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
             title = matched_album.get("AL_Name", title)
             genre = matched_album.get("AL_Genre")
             album_name = matched_album.get("AL_Name")
+            artist_names = album_artist_names_map.get(str(album_id))
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name")
         elif artist_id is not None and matched_artist:
@@ -541,6 +653,7 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
             "time_created": review.get("R_TimeCreated"),
             "num_likes": _coerce_like_count(review.get("R_NumOfLikes")),
             "album_name": album_name,
+            "artist_names": artist_names,
             "artwork_url": artwork_url,
             "artwork_alt": artwork_alt or title,
             "username": review.get("U_Username"),
@@ -601,12 +714,21 @@ def _fetch_review_reference_payloads():
         f"{DIRECTUS_URL}/items/ARTIST",
         params={"fields": "ART_ID,ART_Name,ART_Genre,ART_Image", "limit": -1}
     )
-
+    makes_song_response = requests.get(
+        f"{DIRECTUS_URL}/items/MAKES_SONG",
+        params={"fields": "S_ID,ART_ID", "limit": -1}
+    )
+    makes_album_response = requests.get(
+        f"{DIRECTUS_URL}/items/MAKES_ALBUM",
+        params={"fields": "AL_ID,ART_ID", "limit": -1}
+    )
     return (
         review_response.json(),
         song_response.json(),
         album_response.json(),
-        artist_response.json()
+        artist_response.json(),
+        makes_song_response.json(),
+        makes_album_response.json()
     )
 
 
@@ -777,36 +899,42 @@ def api_search():
 # -----------------------
 @app.route("/api/song_reviews")
 def song_reviews():
-    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
     normalized_reviews = _normalize_review_records(
         review_payload,
         song_payload,
         album_payload,
-        artist_payload
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
     )
     return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="song"))
 
 
 @app.route("/api/album_reviews")
 def album_reviews():
-    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
     normalized_reviews = _normalize_review_records(
         review_payload,
         song_payload,
         album_payload,
-        artist_payload
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
     )
     return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="album"))
 
 
 @app.route("/api/artist_reviews")
 def artist_reviews():
-    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
     normalized_reviews = _normalize_review_records(
         review_payload,
         song_payload,
         album_payload,
-        artist_payload
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
     )
     return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="artist"))
 
@@ -824,7 +952,7 @@ def user_reviews():
         username=username,
         user_id=user_id
     )
-    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
     song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
 
     return jsonify(_normalize_user_profile_reviews(
@@ -833,6 +961,8 @@ def user_reviews():
         song_payload,
         album_payload,
         artist_payload,
+        makes_song_payload,
+        makes_album_payload,
         song_review_payload,
         album_review_payload,
         artist_review_payload
@@ -843,14 +973,16 @@ def user_reviews():
 @app.route("/api/feed")
 def feed():
     feed_response = requests.get(f"{DIRECTUS_URL}/feed_review")
-    review_response, song_response, album_response, artist_response = _fetch_review_reference_payloads()
+    review_response, song_response, album_response, artist_response, makes_song_response, makes_album_response = _fetch_review_reference_payloads()
 
     return jsonify(_normalize_feed_payload(
         feed_response.json(),
         review_response,
         song_response,
         album_response,
-        artist_response
+        artist_response,
+        makes_song_response,
+        makes_album_response
     ))
 
 
@@ -974,7 +1106,7 @@ def api_login():
 def get_user_reviews(username):
     user_review_response = requests.get(f"{DIRECTUS_URL}/user_review/")
     filtered_user_reviews = _filter_user_reviews(user_review_response.json(), username=username)
-    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
     song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
 
     return jsonify(_normalize_user_profile_reviews(
@@ -983,6 +1115,8 @@ def get_user_reviews(username):
         song_payload,
         album_payload,
         artist_payload,
+        makes_song_payload,
+        makes_album_payload,
         song_review_payload,
         album_review_payload,
         artist_review_payload

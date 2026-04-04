@@ -349,15 +349,15 @@
         position: fixed;
         right: 22px;
         bottom: 22px;
-        width: 58px;
-        height: 58px;
+        width: 68px;
+        height: 68px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0;
-        border: 1px solid rgba(67, 54, 48, 0.16);
+        border: 1px solid rgba(214, 189, 114, 0.28);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.94);
+        background: rgba(255, 253, 248, 0.96);
         box-shadow: 0 14px 28px rgba(48, 35, 22, 0.14);
         cursor: pointer;
         opacity: 0;
@@ -375,16 +375,16 @@
 
     .feed_back_to_top_button:hover,
     .feed_back_to_top_button:focus-visible {
-        border-color: rgba(67, 54, 48, 0.28);
+        border-color: rgba(214, 189, 114, 0.56);
         box-shadow: 0 18px 34px rgba(48, 35, 22, 0.18);
         outline: none;
+        transform: translateY(-2px);
     }
 
     .feed_back_to_top_icon {
-        width: 22px;
-        height: 22px;
+        width: 48px;
+        height: 48px;
         object-fit: contain;
-        transform: rotate(-90deg);
     }
 
     .profile_page {
@@ -1145,14 +1145,16 @@
 
     .detail_review_card {
         width: 100%;
-        padding: 16px 18px;
+        padding: 18px 20px 20px;
         border: 1px solid rgba(67, 54, 48, 0.12);
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.86);
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 251, 245, 0.96) 100%);
         box-sizing: border-box;
         text-align: left;
         cursor: default;
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        box-shadow: 0 14px 28px rgba(48, 35, 22, 0.06);
+        overflow: hidden;
     }
 
     .detail_review_card:hover {
@@ -1187,67 +1189,133 @@
     .detail_review_username {
         font-weight: 700;
         color: #2f2622;
+        font-size: 0.95rem;
     }
 
-    .detail_review_rating {
+    .detail_review_rating_block {
+        display: none;
+    }
+
+    .detail_review_rating_stars {
         color: #2f2622;
-        letter-spacing: 0.08em;
-        font-size: 0.95rem;
+        letter-spacing: 0.18em;
+        font-size: 1rem;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .detail_review_rating_score {
+        color: #77675d;
+        font-size: 0.86rem;
         white-space: nowrap;
     }
 
     .detail_review_title {
-        margin: 12px 0 8px;
-        font-size: 1.04rem;
+        margin: 0;
+        font-size: clamp(1.45rem, 2vw, 1.9rem);
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
         color: #2f2622;
     }
 
     .detail_review_body_row {
         display: grid;
-        grid-template-columns: 92px minmax(0, 1fr);
-        gap: 16px;
-        align-items: start;
+        grid-template-columns: minmax(0, 1fr) 190px;
+        gap: 22px;
+        align-items: stretch;
         margin-top: 12px;
     }
 
-    .detail_review_artwork {
-        width: 92px;
-        height: 92px;
-        border-radius: 18px;
-        object-fit: cover;
-        border: 1px solid rgba(67, 54, 48, 0.12);
-        background: rgba(255, 255, 255, 0.82);
-        box-shadow: 0 8px 20px rgba(48, 35, 22, 0.08);
-    }
-
     .detail_review_copy {
+        display: flex;
+        flex-direction: column;
         min-width: 0;
     }
 
-    .detail_review_copy .detail_review_title {
-        margin-top: 0;
+    .detail_review_supporting {
+        margin: 6px 0 0;
+        color: #7a685e;
+        font-size: 0.96rem;
+        line-height: 1.35;
     }
 
     .detail_review_snippet,
     .review_modal_copy {
-        margin: 0;
+        margin: 16px 0 0;
         color: #605149;
-        line-height: 1.68;
-        font-size: 0.95rem;
+        line-height: 1.72;
+        font-size: 0.96rem;
+        font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .detail_review_media {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: 0;
+    }
+
+    .detail_review_media_album {
+        padding-right: 6px;
+    }
+
+    .detail_review_vinyl {
+        position: absolute;
+        top: 18px;
+        right: 34px;
+        width: 146px;
+        height: 146px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 18px rgba(28, 20, 15, 0.18));
+        z-index: 1;
+    }
+
+    .detail_review_artwork {
+        position: relative;
+        width: 170px;
+        height: 170px;
+        border-radius: 0;
+        object-fit: cover;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 12px 24px rgba(48, 35, 22, 0.1);
+        z-index: 2;
     }
 
     .detail_review_meta {
         margin: 0;
-        font-size: 12px;
-        opacity: 0.7;
+        font-size: 0.72rem;
+        color: #7d6c61;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
     }
 
     .detail_review_footer {
-        margin-top: 12px;
+        margin-top: auto;
+        padding-top: 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 16px;
+    }
+
+    .detail_review_footer_left {
+        display: flex;
+        align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .detail_review_footer_right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-shrink: 0;
+        margin-left: auto;
     }
 
     .detail_review_like_button {
@@ -1290,15 +1358,47 @@
     }
 
     @media (max-width: 640px) {
+        .detail_review_head,
+        .review_modal_head {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
         .detail_review_body_row {
-            grid-template-columns: 74px minmax(0, 1fr);
+            grid-template-columns: 1fr;
             gap: 12px;
         }
 
+        .detail_review_media {
+            justify-content: flex-start;
+            order: -1;
+        }
+
+        .detail_review_media_album {
+            padding-right: 0;
+        }
+
+        .detail_review_vinyl {
+            top: 10px;
+            right: auto;
+            left: 72px;
+            width: 120px;
+            height: 120px;
+        }
+
         .detail_review_artwork {
-            width: 74px;
-            height: 74px;
-            border-radius: 16px;
+            width: 150px;
+            height: 150px;
+        }
+
+        .detail_review_footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .detail_review_footer_right {
+            justify-content: flex-start;
+            margin-left: 0;
         }
     }
 
@@ -1547,6 +1647,14 @@
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 10px 24px rgba(48, 35, 22, 0.05);
     }
 
+    .add_char_count {
+        margin: 10px 0 0;
+        text-align: right;
+        color: #7a685e;
+        font-size: 0.84rem;
+        letter-spacing: 0.04em;
+    }
+
     .add_textarea::placeholder {
         color: #978579;
     }
@@ -1569,6 +1677,36 @@
         min-height: 1.5em;
         color: #5d4d45;
         line-height: 1.5;
+    }
+
+    .add_review_popup {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1400;
+        min-width: 240px;
+        max-width: min(360px, calc(100vw - 32px));
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        background: rgba(255, 252, 247, 0.98);
+        color: #2f2622;
+        box-shadow: 0 18px 34px rgba(48, 35, 22, 0.16);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .add_review_popup.is_visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .add_review_popup.is_error {
+        border-color: rgba(150, 61, 61, 0.22);
+        background: rgba(255, 245, 244, 0.98);
+        color: #8d4038;
     }
 
     .add_submit_button {

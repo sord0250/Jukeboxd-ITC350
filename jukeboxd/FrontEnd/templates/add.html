@@ -73,8 +73,10 @@
                         class="add_textarea"
                         name="review"
                         rows="7"
+                        maxlength="300"
                         placeholder="What did you think?"
                     ></textarea>
+                    <p id="review-char-count" class="add_char_count" aria-live="polite">0/300</p>
                 </section>
 
                 <div class="add_actions">
@@ -84,6 +86,8 @@
             </form>
         </section>
     </main>
+
+    <div id="add-review-toast" class="add_review_popup" hidden aria-live="polite"></div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

@@ -237,38 +237,6 @@ function bindReviewLikeHandler(container, getReviews, setReviews, rerenderReview
 
 // -------------------- CARD BUILDERS --------------------
 
-function createFeedCard(entry, index = 0) {
-    return `
-        <button
-            class="detail_review_card"
-            type="button"
-            data-item-id="${entry.review_id}"
-            data-review-index="${index}"
-        >
-            <div class="detail_review_head">
-                <div class="detail_review_identity">
-                    <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
-                    <span class="detail_review_username">${entry.username || "user"}</span>
-                </div>
-                <span class="detail_review_rating">⭐ ${entry.review_rating}</span>
-            </div>
-
-            <h3 class="detail_review_title">${entry.title}</h3>
-
-            <p class="detail_review_snippet">${entry.review_text}</p>
-
-            <p style="font-size: 12px; opacity: 0.7;">
-                ${(entry.review_type || "").toUpperCase()}
-                ${entry.album_name ? " • " + entry.album_name : ""}
-            </p>
-
-            <p style="font-size: 12px; opacity: 0.7;">
-                ❤️ ${entry.num_likes || 0}
-            </p>
-        </button>
-    `;
-}
-
 function createProfileReviewCard(entry) {
     const headline =
         entry.S_Name ||
@@ -286,14 +254,33 @@ function createProfileReviewCard(entry) {
     `;
 }
 
+function formatFeedRatingDisplay(value) {
+    const numericRating = Number(value);
+    if (!Number.isFinite(numericRating)) {
+        return { stars: "", score: "" };
+    }
+
+    const starCount = Math.max(1, Math.min(5, Math.round(numericRating / 2)));
+    return {
+        stars: `${"★".repeat(starCount)}${"☆".repeat(5 - starCount)}`,
+        score: `${starCount}/5`
+    };
+}
+
 function createFeedCard(entry, index = 0) {
     const likedState = hasLikedReview(entry.review_id);
     const likeCount = getReviewLikeCount(entry);
     const artwork = getReviewArtwork(entry);
+    const reviewType = String(entry.review_type || "").toLowerCase();
+    const isAlbumReview = reviewType === "album";
+    const ratingDisplay = formatFeedRatingDisplay(entry.review_rating);
+    const supportingLine = (reviewType === "song" || reviewType === "album")
+        ? (entry.artist_names || "No Artist Found")
+        : "";
 
     return `
         <article
-            class="detail_review_card"
+            class="detail_review_card${isAlbumReview ? " detail_review_card_album" : ""}"
             data-item-id="${entry.review_id}"
             data-review-index="${index}"
         >
@@ -302,35 +289,47 @@ function createFeedCard(entry, index = 0) {
                     <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
                     <span class="detail_review_username">${entry.username || "user"}</span>
                 </div>
-                <span class="detail_review_rating">&#9733; ${entry.review_rating}</span>
-            </div>
-
-            <div class="detail_review_body_row">
-                <img class="detail_review_artwork" src="${artwork.src}" alt="${artwork.alt}">
-
-                <div class="detail_review_copy">
-                    <h3 class="detail_review_title">${entry.title}</h3>
-
-                    <p class="detail_review_snippet">${entry.review_text}</p>
+                <div class="detail_review_rating_block">
+                    <span class="detail_review_rating_stars">${ratingDisplay.stars}</span>
+                    <span class="detail_review_rating_score">${ratingDisplay.score}</span>
                 </div>
             </div>
 
-            <div class="detail_review_footer">
-                <p class="detail_review_meta">
-                    ${(entry.review_type || "").toUpperCase()}
-                    ${entry.album_name ? " &middot; " + entry.album_name : ""}
-                </p>
+            <div class="detail_review_body_row">
+                <div class="detail_review_copy">
+                    <h3 class="detail_review_title">${entry.title}</h3>
+                    ${supportingLine ? `<p class="detail_review_supporting">${supportingLine}</p>` : ""}
+                    <p class="detail_review_snippet">${entry.review_text}</p>
 
-                <button
-                    class="detail_review_like_button${likedState ? " is-liked" : ""}"
-                    type="button"
-                    data-like-review-id="${entry.review_id}"
-                    aria-pressed="${likedState}"
-                    aria-label="${likedState ? "Unlike review" : "Like review"}"
-                >
-                    <span class="detail_review_like_icon" aria-hidden="true">&hearts;</span>
-                    <span class="detail_review_like_count">${likeCount}</span>
-                </button>
+                    <div class="detail_review_footer">
+                        <div class="detail_review_footer_left">
+                            <button
+                                class="detail_review_like_button${likedState ? " is-liked" : ""}"
+                                type="button"
+                                data-like-review-id="${entry.review_id}"
+                                aria-pressed="${likedState}"
+                                aria-label="${likedState ? "Unlike review" : "Like review"}"
+                            >
+                                <span class="detail_review_like_icon" aria-hidden="true">&hearts;</span>
+                                <span class="detail_review_like_count">${likeCount}</span>
+                            </button>
+
+                            <p class="detail_review_meta">
+                                ${(entry.review_type || "").toUpperCase()}
+                            </p>
+                        </div>
+
+                        <div class="detail_review_footer_right">
+                            <span class="detail_review_rating_stars">${ratingDisplay.stars}</span>
+                            <span class="detail_review_rating_score">${ratingDisplay.score}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail_review_media${isAlbumReview ? " detail_review_media_album" : ""}">
+                    ${isAlbumReview ? `<img class="detail_review_vinyl" src="/static/img/jb_record.png" alt="">` : ""}
+                    <img class="detail_review_artwork" src="${artwork.src}" alt="${artwork.alt}">
+                </div>
             </div>
         </article>
     `;
@@ -600,10 +599,49 @@ function initAddPage() {
     const ratingInput = document.getElementById("review-rating-input");
     const ratingStatus = document.getElementById("rating-status");
     const reviewText = document.getElementById("review-text");
+    const reviewCharCount = document.getElementById("review-char-count");
     const message = document.getElementById("add-form-message");
+    const reviewToast = document.getElementById("add-review-toast");
     const ratingButtons = Array.from(document.querySelectorAll(".rating_star"));
+    const REVIEW_TEXT_LIMIT = 300;
 
     let selectedItem = null;
+    let toastTimer = null;
+
+    function showReviewToast(text, isError = false) {
+        if (!reviewToast) return;
+
+        if (toastTimer) {
+            window.clearTimeout(toastTimer);
+        }
+
+        reviewToast.hidden = false;
+        reviewToast.textContent = text;
+        reviewToast.classList.toggle("is_error", isError);
+
+        window.requestAnimationFrame(() => {
+            reviewToast.classList.add("is_visible");
+        });
+
+        toastTimer = window.setTimeout(() => {
+            reviewToast.classList.remove("is_visible");
+            window.setTimeout(() => {
+                reviewToast.hidden = true;
+            }, 180);
+        }, 2200);
+    }
+
+    function updateReviewCharCount() {
+        if (!reviewText) return;
+
+        if (reviewText.value.length > REVIEW_TEXT_LIMIT) {
+            reviewText.value = reviewText.value.slice(0, REVIEW_TEXT_LIMIT);
+        }
+
+        if (reviewCharCount) {
+            reviewCharCount.textContent = `${reviewText.value.length}/${REVIEW_TEXT_LIMIT}`;
+        }
+    }
 
     function updateSelectedLabel() {
         if (!selectedItem) {
@@ -640,6 +678,8 @@ function initAddPage() {
     input.addEventListener("input", (event) => {
         renderResults(event.target.value);
     });
+
+    reviewText.addEventListener("input", updateReviewCharCount);
 
     resultsContainer.addEventListener("click", (event) => {
         const card = event.target.closest(".search_card");
@@ -744,24 +784,26 @@ function initAddPage() {
                 form.reset();
                 selectedItem = null;
                 updateSelectedLabel();
+                updateReviewCharCount();
                 ratingStatus.textContent = "No rating selected yet";
                 ratingButtons.forEach((button) => button.classList.remove("is_active"));
                 resultsContainer.innerHTML = "";
                 count.textContent = "Start typing to search";
+                showReviewToast("Review created successfully");
             } else {
                 message.textContent = data?.errors?.[0]?.message || "Could not submit review.";
+                showReviewToast("Review creation failed", true);
             }
-
-        const results = await fetchSearch(normalizedQuery);
-        console.log("Search results:", results);
 
         } catch (err) {
             console.error(err);
             message.textContent = "Server error. See console.";
+            showReviewToast("Review creation failed", true);
         }
     });
 
     updateSelectedLabel();
+    updateReviewCharCount();
 }
 
 // -------------------- REGISTER PAGE --------------------
