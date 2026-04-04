@@ -1,11 +1,11 @@
 -- ====================
 -- Users
 -- ====================
-INSERT INTO USER (U_FName, U_LName, U_Username, U_PasswordHash, U_Email, U_Role)
+INSERT INTO USER (U_FName, U_LName, U_Username, U_PasswordHash, U_Email, U_DateCreated, U_Role)
 VALUES 
-('Alice', 'Smith', 'AliceS', SHA2('password123', 256), 'alice@example.com', 'User'),
-('Bob', 'Johnson', 'BobbyJ', SHA2('qwerty456', 256), 'bob@example.com', 'User'),
-('Charlie', 'Brown', 'CharlieB', SHA2('abc123', 256), 'charlie@example.com', 'Admin');
+('Alice', 'Smith', 'AliceS', SHA2('password123', 256), 'alice@example.com', '2025-09-14 10:15:00', 'User'),
+('Bob', 'Johnson', 'BobbyJ', SHA2('qwerty456', 256), 'bob@example.com', '2025-10-02 14:30:00', 'User'),
+('Charlie', 'Brown', 'CharlieB', SHA2('abc123', 256), 'charlie@example.com', '2025-11-21 09:00:00', 'Admin');
 
 -- ====================
 -- Artists

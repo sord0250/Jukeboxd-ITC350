@@ -1,5 +1,6 @@
 import requests
 import bcrypt
+from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session, redirect
 
@@ -269,6 +270,7 @@ def api_register():
         "U_LName": last_name,
         "U_Username": username,
         "U_Email": email,
+        "U_DateCreated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "U_PasswordHash": hashed,
         "U_Role": "user"
     }

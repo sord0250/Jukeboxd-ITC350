@@ -106,6 +106,23 @@ function createProfileReviewCard(entry) {
     `;
 }
 
+function formatMemberSince(value) {
+    if (!value) {
+        return "Unknown";
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    }).format(parsed);
+}
+
 // -------------------- SEARCH PAGE --------------------
 
 function initSearchPage() {
@@ -594,7 +611,9 @@ async function loadProfile() {
     document.getElementById("profile-name").textContent = user.U_Username;
     document.getElementById("profile-handle").textContent = "@" + user.U_Username;
     document.getElementById("profile-genre").textContent = user.U_FavoriteGenre;
-    document.getElementById("profile-member").textContent = user.U_DateCreated;
+    document.getElementById("profile-member").textContent = formatMemberSince(
+        user.U_DateCreated || user.date_created
+    );
 }
 
 // -------------------- PAGE INITIALIZER --------------------
