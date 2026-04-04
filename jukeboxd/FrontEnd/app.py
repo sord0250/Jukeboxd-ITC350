@@ -80,6 +80,19 @@ def _coerce_like_count(value):
         return 0
 
 
+def _normalize_search_item_type(value):
+    normalized_value = str(value or "").strip().lower()
+
+    if normalized_value.startswith("song"):
+        return "song"
+    if normalized_value.startswith("album"):
+        return "album"
+    if normalized_value.startswith("artist"):
+        return "artist"
+
+    return normalized_value
+
+
 def _resolve_media_url(value):
     media_url = str(value or "").strip()
     if not media_url:
@@ -892,6 +905,62 @@ def api_search():
     except Exception as e:
         print("Search error:", e)
         return jsonify([])
+
+
+@app.route("/api/search_related_reviews")
+def search_related_reviews():
+    if 'user_id' not in session:
+        return jsonify({"error": "login required"}), 401
+
+    item_type = _normalize_search_item_type(request.args.get("type"))
+    item_id = str(request.args.get("id") or "").strip()
+    limit = request.args.get("limit", default=4, type=int)
+    limit = max(1, min(limit or 4, 12))
+
+    item_key_map = {
+        "song": "S_ID",
+        "album": "AL_ID",
+        "artist": "ART_ID",
+    }
+    item_key = item_key_map.get(item_type)
+
+    if not item_key or not item_id:
+        return jsonify({
+            "data": [],
+            "total": 0,
+            "message": "A valid item type and id are required."
+        }), 400
+
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
+    normalized_reviews = _normalize_review_records(
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
+    review_rows, _ = _extract_payload_list(normalized_reviews)
+
+    matching_reviews = [
+        review for review in review_rows
+        if _normalize_search_item_type(review.get("review_type")) == item_type
+        and str(review.get(item_key, "")).strip() == item_id
+    ]
+    matching_reviews.sort(
+        key=lambda review: (
+            _coerce_like_count(review.get("num_likes")),
+            str(review.get("time_created") or "")
+        ),
+        reverse=True
+    )
+
+    return jsonify({
+        "data": matching_reviews[:limit],
+        "total": len(matching_reviews),
+        "item_type": item_type,
+        "item_id": item_id
+    })
 
 
 # -----------------------
