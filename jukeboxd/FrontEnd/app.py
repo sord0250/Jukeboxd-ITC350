@@ -188,35 +188,101 @@ def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_pa
     return normalized_rows
 
 
-def _normalize_user_feed_payload(user_payload, normalized_feed_payload):
+def _normalize_user_feed_payload(user_payload, review_payload, song_payload, album_payload, artist_payload):
     user_rows, container_key = _extract_payload_list(user_payload)
-    feed_rows, _ = _extract_payload_list(normalized_feed_payload)
+    review_rows, _ = _extract_payload_list(review_payload)
+    song_rows, _ = _extract_payload_list(song_payload)
+    album_rows, _ = _extract_payload_list(album_payload)
+    artist_rows, _ = _extract_payload_list(artist_payload)
 
-    user_review_map = {}
-    for review in user_rows:
+    review_map = {}
+    for review in review_rows:
         review_id = review.get("R_ID") or review.get("review_id")
         if review_id is None:
             continue
-        user_review_map[str(review_id)] = review
+        review_map[str(review_id)] = review
+
+    song_map = {}
+    for song in song_rows:
+        song_id = song.get("S_ID") or song.get("id")
+        if song_id is None:
+            continue
+        song_map[str(song_id)] = song
+
+    album_map = {}
+    for album in album_rows:
+        album_id = album.get("AL_ID") or album.get("id")
+        if album_id is None:
+            continue
+        album_map[str(album_id)] = album
+
+    artist_map = {}
+    for artist in artist_rows:
+        artist_id = artist.get("ART_ID") or artist.get("id")
+        if artist_id is None:
+            continue
+        artist_map[str(artist_id)] = artist
 
     normalized_rows = []
-    for row in feed_rows:
-        review_id = row.get("review_id") or row.get("R_ID")
-        matched_user_review = user_review_map.get(str(review_id))
-        if not matched_user_review:
+    for user_review in user_rows:
+        review_id = user_review.get("R_ID") or user_review.get("review_id")
+        if review_id is None:
             continue
 
-        normalized_row = dict(row)
+        review = review_map.get(str(review_id), {})
+        song_id = review.get("S_ID")
+        album_id = review.get("AL_ID")
+        artist_id = review.get("ART_ID")
+
+        if not album_id and song_id is not None:
+            matched_song = song_map.get(str(song_id), {})
+            album_id = matched_song.get("AL_ID")
+        else:
+            matched_song = song_map.get(str(song_id), {}) if song_id is not None else {}
+
+        matched_album = album_map.get(str(album_id), {}) if album_id is not None else {}
+        matched_artist = artist_map.get(str(artist_id), {}) if artist_id is not None else {}
+
+        review_type = "review"
+        title = "Untitled Review"
+        album_name = None
+        artwork_url = None
+        artwork_alt = None
+
+        if song_id is not None and matched_song:
+            review_type = "song"
+            title = matched_song.get("S_Name", title)
+            album_name = matched_album.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
+        elif album_id is not None and matched_album:
+            review_type = "album"
+            title = matched_album.get("AL_Name", title)
+            album_name = matched_album.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name")
+        elif artist_id is not None and matched_artist:
+            review_type = "artist"
+            title = matched_artist.get("ART_Name", title)
+            artwork_url = _resolve_media_url(matched_artist.get("ART_Image"))
+            artwork_alt = matched_artist.get("ART_Name")
+
+        normalized_row = {}
         normalized_row["review_id"] = review_id
-        normalized_row["username"] = matched_user_review.get("U_Username", row.get("username"))
-        normalized_row["U_Username"] = matched_user_review.get("U_Username")
-        normalized_row["U_ID"] = matched_user_review.get("U_ID", matched_user_review.get("id"))
-        normalized_row["review_text"] = row.get("review_text", matched_user_review.get("R_Text", ""))
-        normalized_row["review_rating"] = row.get("review_rating", matched_user_review.get("R_Rating", ""))
-        normalized_row["time_created"] = row.get("time_created", matched_user_review.get("R_TimeCreated"))
+        normalized_row["username"] = user_review.get("U_Username")
+        normalized_row["U_Username"] = user_review.get("U_Username")
+        normalized_row["U_ID"] = user_review.get("U_ID", user_review.get("id"))
+        normalized_row["review_text"] = user_review.get("R_Text", review.get("R_Text", ""))
+        normalized_row["review_rating"] = review.get("R_Rating", user_review.get("R_Rating", ""))
+        normalized_row["time_created"] = review.get("R_TimeCreated", user_review.get("R_TimeCreated"))
         normalized_row["num_likes"] = _coerce_like_count(
-            row.get("num_likes", matched_user_review.get("R_NumOfLikes"))
+            review.get("R_NumOfLikes", user_review.get("R_NumOfLikes"))
         )
+        normalized_row["review_type"] = review_type
+        normalized_row["title"] = title
+        normalized_row["album_name"] = album_name
+        normalized_row["artwork_url"] = artwork_url
+        normalized_row["artwork_alt"] = artwork_alt or title
         normalized_rows.append(normalized_row)
 
     normalized_rows.sort(
@@ -230,6 +296,330 @@ def _normalize_user_feed_payload(user_payload, normalized_feed_payload):
         return result
 
     return normalized_rows
+
+
+def _build_review_view_maps(song_review_payload, album_review_payload, artist_review_payload):
+    song_rows, _ = _extract_payload_list(song_review_payload)
+    album_rows, _ = _extract_payload_list(album_review_payload)
+    artist_rows, _ = _extract_payload_list(artist_review_payload)
+
+    song_review_map = {}
+    for row in song_rows:
+        review_id = row.get("R_ID") or row.get("review_id") or row.get("id")
+        if review_id is None:
+            continue
+        song_review_map[str(review_id)] = row
+
+    album_review_map = {}
+    for row in album_rows:
+        review_id = row.get("R_ID") or row.get("review_id") or row.get("id")
+        if review_id is None:
+            continue
+        album_review_map[str(review_id)] = row
+
+    artist_review_map = {}
+    for row in artist_rows:
+        review_id = row.get("R_ID") or row.get("review_id") or row.get("id")
+        if review_id is None:
+            continue
+        artist_review_map[str(review_id)] = row
+
+    return song_review_map, album_review_map, artist_review_map
+
+
+def _normalize_user_profile_reviews(
+    user_payload,
+    review_payload,
+    song_payload,
+    album_payload,
+    artist_payload,
+    song_review_payload,
+    album_review_payload,
+    artist_review_payload
+):
+    user_rows, container_key = _extract_payload_list(user_payload)
+    review_rows, _ = _extract_payload_list(review_payload)
+    song_rows, _ = _extract_payload_list(song_payload)
+    album_rows, _ = _extract_payload_list(album_payload)
+    artist_rows, _ = _extract_payload_list(artist_payload)
+
+    review_map = {}
+    for review in review_rows:
+        review_id = review.get("R_ID") or review.get("review_id")
+        if review_id is None:
+            continue
+        review_map[str(review_id)] = review
+
+    song_map = {}
+    for song in song_rows:
+        song_id = song.get("S_ID") or song.get("id")
+        if song_id is None:
+            continue
+        song_map[str(song_id)] = song
+
+    album_map = {}
+    for album in album_rows:
+        album_id = album.get("AL_ID") or album.get("id")
+        if album_id is None:
+            continue
+        album_map[str(album_id)] = album
+
+    artist_map = {}
+    for artist in artist_rows:
+        artist_id = artist.get("ART_ID") or artist.get("id")
+        if artist_id is None:
+            continue
+        artist_map[str(artist_id)] = artist
+
+    song_review_map, album_review_map, artist_review_map = _build_review_view_maps(
+        song_review_payload,
+        album_review_payload,
+        artist_review_payload
+    )
+
+    normalized_rows = []
+    for user_review in user_rows:
+        review_id = user_review.get("R_ID") or user_review.get("review_id")
+        if review_id is None:
+            continue
+
+        review = review_map.get(str(review_id), {})
+        fallback_song_review = song_review_map.get(str(review_id), {})
+        fallback_album_review = album_review_map.get(str(review_id), {})
+        fallback_artist_review = artist_review_map.get(str(review_id), {})
+
+        song_id = review.get("S_ID")
+        album_id = review.get("AL_ID")
+        artist_id = review.get("ART_ID")
+
+        matched_song = song_map.get(str(song_id), {}) if song_id is not None else {}
+        if not album_id and matched_song:
+            album_id = matched_song.get("AL_ID")
+
+        matched_album = album_map.get(str(album_id), {}) if album_id is not None else {}
+        matched_artist = artist_map.get(str(artist_id), {}) if artist_id is not None else {}
+
+        review_type = "review"
+        title = "Untitled Review"
+        album_name = None
+        artwork_url = None
+        artwork_alt = None
+
+        if song_id is not None or fallback_song_review:
+            review_type = "song"
+            title = matched_song.get("S_Name") or fallback_song_review.get("S_Name") or title
+
+            fallback_album_id = fallback_song_review.get("AL_ID")
+            if not matched_album and fallback_album_id is not None:
+                matched_album = album_map.get(str(fallback_album_id), {})
+
+            album_name = matched_album.get("AL_Name") or fallback_song_review.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or fallback_song_review.get("S_Name")
+        elif album_id is not None or fallback_album_review:
+            review_type = "album"
+            title = matched_album.get("AL_Name") or fallback_album_review.get("name") or title
+            album_name = matched_album.get("AL_Name") or fallback_album_review.get("name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or fallback_album_review.get("name")
+        elif artist_id is not None or fallback_artist_review:
+            review_type = "artist"
+            title = matched_artist.get("ART_Name") or fallback_artist_review.get("ART_Name") or title
+            artwork_url = _resolve_media_url(matched_artist.get("ART_Image"))
+            artwork_alt = matched_artist.get("ART_Name") or fallback_artist_review.get("ART_Name")
+
+        normalized_rows.append({
+            "review_id": review_id,
+            "username": user_review.get("U_Username"),
+            "U_Username": user_review.get("U_Username"),
+            "U_ID": user_review.get("U_ID", user_review.get("id")),
+            "review_text": user_review.get("R_Text", review.get("R_Text", "")),
+            "review_rating": review.get("R_Rating", user_review.get("R_Rating", "")),
+            "time_created": review.get("R_TimeCreated", user_review.get("R_TimeCreated")),
+            "num_likes": _coerce_like_count(
+                review.get("R_NumOfLikes", user_review.get("R_NumOfLikes"))
+            ),
+            "review_type": review_type,
+            "title": title,
+            "album_name": album_name,
+            "artwork_url": artwork_url,
+            "artwork_alt": artwork_alt or title
+        })
+
+    normalized_rows.sort(
+        key=lambda review: str(review.get("time_created") or ""),
+        reverse=True
+    )
+
+    if container_key == "data":
+        result = dict(user_payload)
+        result["data"] = normalized_rows
+        return result
+
+    return normalized_rows
+
+
+def _normalize_review_records(review_payload, song_payload, album_payload, artist_payload):
+    review_rows, container_key = _extract_payload_list(review_payload)
+    song_rows, _ = _extract_payload_list(song_payload)
+    album_rows, _ = _extract_payload_list(album_payload)
+    artist_rows, _ = _extract_payload_list(artist_payload)
+
+    song_map = {}
+    for song in song_rows:
+        song_id = song.get("S_ID") or song.get("id")
+        if song_id is None:
+            continue
+        song_map[str(song_id)] = song
+
+    album_map = {}
+    for album in album_rows:
+        album_id = album.get("AL_ID") or album.get("id")
+        if album_id is None:
+            continue
+        album_map[str(album_id)] = album
+
+    artist_map = {}
+    for artist in artist_rows:
+        artist_id = artist.get("ART_ID") or artist.get("id")
+        if artist_id is None:
+            continue
+        artist_map[str(artist_id)] = artist
+
+    normalized_rows = []
+    for review in review_rows:
+        review_id = review.get("R_ID") or review.get("review_id") or review.get("id")
+        if review_id is None:
+            continue
+
+        song_id = review.get("S_ID")
+        album_id = review.get("AL_ID")
+        artist_id = review.get("ART_ID")
+
+        matched_song = song_map.get(str(song_id), {}) if song_id is not None else {}
+        if not album_id and matched_song:
+            album_id = matched_song.get("AL_ID")
+
+        matched_album = album_map.get(str(album_id), {}) if album_id is not None else {}
+        matched_artist = artist_map.get(str(artist_id), {}) if artist_id is not None else {}
+
+        review_type = "review"
+        title = "Untitled Review"
+        genre = None
+        album_name = None
+        artwork_url = None
+        artwork_alt = None
+
+        if song_id is not None and matched_song:
+            review_type = "song"
+            title = matched_song.get("S_Name", title)
+            genre = matched_song.get("S_Genre")
+            album_name = matched_album.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
+        elif album_id is not None and matched_album:
+            review_type = "album"
+            title = matched_album.get("AL_Name", title)
+            genre = matched_album.get("AL_Genre")
+            album_name = matched_album.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name")
+        elif artist_id is not None and matched_artist:
+            review_type = "artist"
+            title = matched_artist.get("ART_Name", title)
+            genre = matched_artist.get("ART_Genre")
+            artwork_url = _resolve_media_url(matched_artist.get("ART_Image"))
+            artwork_alt = matched_artist.get("ART_Name")
+
+        normalized_rows.append({
+            "review_id": review_id,
+            "title": title,
+            "review_type": review_type,
+            "genre": genre,
+            "review_text": review.get("R_Text", ""),
+            "review_rating": review.get("R_Rating"),
+            "time_created": review.get("R_TimeCreated"),
+            "num_likes": _coerce_like_count(review.get("R_NumOfLikes")),
+            "album_name": album_name,
+            "artwork_url": artwork_url,
+            "artwork_alt": artwork_alt or title,
+            "username": review.get("U_Username"),
+            "U_Username": review.get("U_Username"),
+            "S_ID": song_id,
+            "AL_ID": album_id,
+            "ART_ID": artist_id
+        })
+
+    normalized_rows.sort(
+        key=lambda review: str(review.get("time_created") or ""),
+        reverse=True
+    )
+
+    if container_key == "data":
+        result = dict(review_payload)
+        result["data"] = normalized_rows
+        return result
+
+    return normalized_rows
+
+
+def _filter_normalized_reviews(payload, review_type=None):
+    rows, container_key = _extract_payload_list(payload)
+
+    filtered_rows = rows
+    if review_type:
+        filtered_rows = [
+            review for review in rows
+            if str(review.get("review_type", "")).strip().lower() == review_type
+        ]
+
+    if container_key == "data":
+        result = dict(payload)
+        result["data"] = filtered_rows
+        return result
+
+    return filtered_rows
+
+
+def _fetch_review_reference_payloads():
+    review_response = requests.get(
+        f"{DIRECTUS_URL}/items/REVIEW",
+        params={
+            "fields": "R_ID,R_Text,R_Rating,R_TimeCreated,R_NumOfLikes,S_ID,AL_ID,ART_ID,U_Username",
+            "limit": -1
+        }
+    )
+    song_response = requests.get(
+        f"{DIRECTUS_URL}/items/SONG",
+        params={"fields": "S_ID,S_Name,S_Genre,AL_ID", "limit": -1}
+    )
+    album_response = requests.get(
+        f"{DIRECTUS_URL}/items/ALBUM",
+        params={"fields": "AL_ID,AL_Name,AL_Genre,AL_Image", "limit": -1}
+    )
+    artist_response = requests.get(
+        f"{DIRECTUS_URL}/items/ARTIST",
+        params={"fields": "ART_ID,ART_Name,ART_Genre,ART_Image", "limit": -1}
+    )
+
+    return (
+        review_response.json(),
+        song_response.json(),
+        album_response.json(),
+        artist_response.json()
+    )
+
+
+def _fetch_review_view_payloads():
+    song_review_response = requests.get(f"{DIRECTUS_URL}/song_review/")
+    album_review_response = requests.get(f"{DIRECTUS_URL}/album_reviews/")
+    artist_review_response = requests.get(f"{DIRECTUS_URL}/artist_review/")
+
+    return (
+        song_review_response.json(),
+        album_review_response.json(),
+        artist_review_response.json()
+    )
 
 
 # -----------------------
@@ -387,20 +777,38 @@ def api_search():
 # -----------------------
 @app.route("/api/song_reviews")
 def song_reviews():
-    r = requests.get(f"{DIRECTUS_URL}/song_review/")
-    return jsonify(r.json())
+    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    normalized_reviews = _normalize_review_records(
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload
+    )
+    return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="song"))
 
 
 @app.route("/api/album_reviews")
 def album_reviews():
-    r = requests.get(f"{DIRECTUS_URL}/album_reviews/")
-    return jsonify(r.json())
+    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    normalized_reviews = _normalize_review_records(
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload
+    )
+    return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="album"))
 
 
 @app.route("/api/artist_reviews")
 def artist_reviews():
-    r = requests.get(f"{DIRECTUS_URL}/artist_review/")
-    return jsonify(r.json())
+    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    normalized_reviews = _normalize_review_records(
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload
+    )
+    return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="artist"))
 
 
 @app.route("/api/user_reviews")
@@ -416,34 +824,18 @@ def user_reviews():
         username=username,
         user_id=user_id
     )
-    feed_response = requests.get(f"{DIRECTUS_URL}/feed_review")
-    review_response = requests.get(
-        f"{DIRECTUS_URL}/items/REVIEW",
-        params={"fields": "R_ID,R_NumOfLikes,S_ID,AL_ID,ART_ID"}
-    )
-    song_response = requests.get(
-        f"{DIRECTUS_URL}/items/SONG",
-        params={"fields": "S_ID,AL_ID"}
-    )
-    album_response = requests.get(
-        f"{DIRECTUS_URL}/items/ALBUM",
-        params={"fields": "AL_ID,AL_Name,AL_Image"}
-    )
-    artist_response = requests.get(
-        f"{DIRECTUS_URL}/items/ARTIST",
-        params={"fields": "ART_ID,ART_Name,ART_Image"}
-    )
-    normalized_feed_payload = _normalize_feed_payload(
-        feed_response.json(),
-        review_response.json(),
-        song_response.json(),
-        album_response.json(),
-        artist_response.json()
-    )
+    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
 
-    return jsonify(_normalize_user_feed_payload(
+    return jsonify(_normalize_user_profile_reviews(
         filtered_user_reviews,
-        normalized_feed_payload
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload,
+        song_review_payload,
+        album_review_payload,
+        artist_review_payload
     ))
 
 
@@ -451,29 +843,14 @@ def user_reviews():
 @app.route("/api/feed")
 def feed():
     feed_response = requests.get(f"{DIRECTUS_URL}/feed_review")
-    review_response = requests.get(
-        f"{DIRECTUS_URL}/items/REVIEW",
-        params={"fields": "R_ID,R_NumOfLikes,S_ID,AL_ID,ART_ID"}
-    )
-    song_response = requests.get(
-        f"{DIRECTUS_URL}/items/SONG",
-        params={"fields": "S_ID,AL_ID"}
-    )
-    album_response = requests.get(
-        f"{DIRECTUS_URL}/items/ALBUM",
-        params={"fields": "AL_ID,AL_Name,AL_Image"}
-    )
-    artist_response = requests.get(
-        f"{DIRECTUS_URL}/items/ARTIST",
-        params={"fields": "ART_ID,ART_Name,ART_Image"}
-    )
+    review_response, song_response, album_response, artist_response = _fetch_review_reference_payloads()
 
     return jsonify(_normalize_feed_payload(
         feed_response.json(),
-        review_response.json(),
-        song_response.json(),
-        album_response.json(),
-        artist_response.json()
+        review_response,
+        song_response,
+        album_response,
+        artist_response
     ))
 
 
@@ -597,34 +974,18 @@ def api_login():
 def get_user_reviews(username):
     user_review_response = requests.get(f"{DIRECTUS_URL}/user_review/")
     filtered_user_reviews = _filter_user_reviews(user_review_response.json(), username=username)
-    feed_response = requests.get(f"{DIRECTUS_URL}/feed_review")
-    review_response = requests.get(
-        f"{DIRECTUS_URL}/items/REVIEW",
-        params={"fields": "R_ID,R_NumOfLikes,S_ID,AL_ID,ART_ID"}
-    )
-    song_response = requests.get(
-        f"{DIRECTUS_URL}/items/SONG",
-        params={"fields": "S_ID,AL_ID"}
-    )
-    album_response = requests.get(
-        f"{DIRECTUS_URL}/items/ALBUM",
-        params={"fields": "AL_ID,AL_Name,AL_Image"}
-    )
-    artist_response = requests.get(
-        f"{DIRECTUS_URL}/items/ARTIST",
-        params={"fields": "ART_ID,ART_Name,ART_Image"}
-    )
-    normalized_feed_payload = _normalize_feed_payload(
-        feed_response.json(),
-        review_response.json(),
-        song_response.json(),
-        album_response.json(),
-        artist_response.json()
-    )
+    review_payload, song_payload, album_payload, artist_payload = _fetch_review_reference_payloads()
+    song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
 
-    return jsonify(_normalize_user_feed_payload(
+    return jsonify(_normalize_user_profile_reviews(
         filtered_user_reviews,
-        normalized_feed_payload
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload,
+        song_review_payload,
+        album_review_payload,
+        artist_review_payload
     ))
 
 

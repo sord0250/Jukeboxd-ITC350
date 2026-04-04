@@ -397,6 +397,7 @@ function initSearchPage() {
 async function initHomeFeed() {
     const feedList = document.getElementById("feed-list");
     const feedScrollTrigger = document.getElementById("feed-scroll-trigger");
+    const backToTopButton = document.getElementById("feed-back-to-top");
     const filterButtons = Array.from(document.querySelectorAll(".feed_filter_button"));
     if (!feedList) return;
 
@@ -444,6 +445,15 @@ async function initHomeFeed() {
         if (triggerTop <= window.innerHeight + preloadOffset) {
             loadMoreReviews();
         }
+    }
+
+    function updateBackToTopButton() {
+        if (!backToTopButton) {
+            return;
+        }
+
+        const shouldShowButton = window.scrollY > 320;
+        backToTopButton.classList.toggle("is-visible", shouldShowButton);
     }
 
     function renderFeed() {
@@ -500,7 +510,18 @@ async function initHomeFeed() {
         window.addEventListener("scroll", maybeLoadMoreOnScroll, { passive: true });
     }
 
+    if (backToTopButton) {
+        backToTopButton.addEventListener("click", () => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        });
+    }
+
+    window.addEventListener("scroll", updateBackToTopButton, { passive: true });
     window.addEventListener("resize", maybeLoadMoreOnScroll);
+    window.addEventListener("resize", updateBackToTopButton);
 
     try {
         const response = await fetch("/api/feed");
@@ -510,6 +531,7 @@ async function initHomeFeed() {
         visibleFeedCount = FEED_PAGE_SIZE;
         updateFilterButtons();
         renderFeed();
+        updateBackToTopButton();
     } catch (err) {
         console.error("Feed load error:", err);
     }
@@ -916,7 +938,6 @@ async function loadProfile() {
 
     document.getElementById("profile-name").textContent = user.U_Username;
     document.getElementById("profile-handle").textContent = "@" + user.U_Username;
-    document.getElementById("profile-genre").textContent = user.U_FavoriteGenre;
     document.getElementById("profile-member").textContent = formatMemberSince(
         user.U_DateCreated || user.date_created
     );
