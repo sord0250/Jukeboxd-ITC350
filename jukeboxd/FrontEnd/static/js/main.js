@@ -307,19 +307,19 @@ function createFeedCard(entry, index = 0) {
             data-item-id="${entry.review_id}"
             data-review-index="${index}"
         >
-            <div class="detail_review_head">
-                <div class="detail_review_identity">
-                    <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
-                    <span class="detail_review_username">${entry.username || "user"}</span>
-                </div>
-                <div class="detail_review_rating_block">
-                    <span class="detail_review_rating_stars">${ratingDisplay.stars}</span>
-                    <span class="detail_review_rating_score">${ratingDisplay.score}</span>
-                </div>
-            </div>
-
-            <div class="detail_review_body_row">
+            <div class="detail_review_layout">
                 <div class="detail_review_copy">
+                    <div class="detail_review_head">
+                        <div class="detail_review_identity">
+                            <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
+                            <span class="detail_review_username">${entry.username || "user"}</span>
+                        </div>
+                        <div class="detail_review_rating_block">
+                            <span class="detail_review_rating_stars">${ratingDisplay.stars}</span>
+                            <span class="detail_review_rating_score">${ratingDisplay.score}</span>
+                        </div>
+                    </div>
+
                     <h3 class="detail_review_title">${entry.title}</h3>
                     ${supportingLine ? `<p class="detail_review_supporting">${supportingLine}</p>` : ""}
                     <p class="detail_review_snippet">${entry.review_text}</p>

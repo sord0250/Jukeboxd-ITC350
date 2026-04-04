@@ -1220,18 +1220,18 @@
         color: #2f2622;
     }
 
-    .detail_review_body_row {
+    .detail_review_layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 190px;
+        grid-template-columns: minmax(0, 1fr) 280px;
         gap: 22px;
         align-items: stretch;
-        margin-top: 12px;
     }
 
     .detail_review_copy {
         display: flex;
         flex-direction: column;
         min-width: 0;
+        grid-column: 1;
     }
 
     .detail_review_supporting {
@@ -1256,27 +1256,37 @@
         align-items: center;
         justify-content: flex-end;
         min-width: 0;
+        min-height: 100%;
+        height: 100%;
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
     }
 
     .detail_review_media_album {
-        padding-right: 6px;
+        padding-right: 10px;
     }
 
     .detail_review_vinyl {
         position: absolute;
-        top: 18px;
-        right: 34px;
-        width: 146px;
-        height: 146px;
+        top: 50%;
+        right: 76px;
+        width: 230px;
+        height: 230px;
         object-fit: contain;
+        transform: translateY(-50%);
         filter: drop-shadow(0 10px 18px rgba(28, 20, 15, 0.18));
         z-index: 1;
     }
 
     .detail_review_artwork {
         position: relative;
-        width: 170px;
-        height: 170px;
+        align-self: center;
+        width: 220px;
+        height: 220px;
+        min-height: 0;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
         border-radius: 0;
         object-fit: cover;
         border: 1px solid rgba(67, 54, 48, 0.12);
@@ -1364,14 +1374,16 @@
             flex-direction: column;
         }
 
-        .detail_review_body_row {
+        .detail_review_layout {
             grid-template-columns: 1fr;
             gap: 12px;
         }
 
         .detail_review_media {
             justify-content: flex-start;
+            grid-row: auto;
             order: -1;
+            height: auto;
         }
 
         .detail_review_media_album {
@@ -1379,16 +1391,19 @@
         }
 
         .detail_review_vinyl {
-            top: 10px;
+            top: 50%;
             right: auto;
             left: 72px;
             width: 120px;
             height: 120px;
+            transform: translateY(-50%);
         }
 
         .detail_review_artwork {
             width: 150px;
             height: 150px;
+            min-height: 0;
+            max-width: none;
         }
 
         .detail_review_footer {
