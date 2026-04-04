@@ -340,6 +340,11 @@
         gap: 22px;
     }
 
+    .feed_scroll_trigger {
+        height: 1px;
+        margin-bottom: 24px;
+    }
+
     .profile_page {
         width: min(1180px, 100%);
         margin: 0 auto;
@@ -1104,7 +1109,7 @@
         background: rgba(255, 255, 255, 0.86);
         box-sizing: border-box;
         text-align: left;
-        cursor: pointer;
+        cursor: default;
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
@@ -1155,12 +1160,104 @@
         color: #2f2622;
     }
 
+    .detail_review_body_row {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+        margin-top: 12px;
+    }
+
+    .detail_review_artwork {
+        width: 92px;
+        height: 92px;
+        border-radius: 18px;
+        object-fit: cover;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 8px 20px rgba(48, 35, 22, 0.08);
+    }
+
+    .detail_review_copy {
+        min-width: 0;
+    }
+
+    .detail_review_copy .detail_review_title {
+        margin-top: 0;
+    }
+
     .detail_review_snippet,
     .review_modal_copy {
         margin: 0;
         color: #605149;
         line-height: 1.68;
         font-size: 0.95rem;
+    }
+
+    .detail_review_meta {
+        margin: 0;
+        font-size: 12px;
+        opacity: 0.7;
+    }
+
+    .detail_review_footer {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .detail_review_like_button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #6a554b;
+        font: inherit;
+        font-size: 0.86rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, color 0.18s ease, background 0.18s ease;
+    }
+
+    .detail_review_like_button:hover,
+    .detail_review_like_button:focus-visible {
+        border-color: rgba(150, 61, 61, 0.28);
+        box-shadow: 0 10px 22px rgba(150, 61, 61, 0.12);
+        color: #963d3d;
+        outline: none;
+        transform: translateY(-1px);
+    }
+
+    .detail_review_like_button.is-liked,
+    .detail_review_like_button:disabled {
+        border-color: rgba(150, 61, 61, 0.22);
+        background: rgba(150, 61, 61, 0.08);
+        color: #963d3d;
+        cursor: pointer;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .detail_review_like_icon {
+        line-height: 1;
+    }
+
+    @media (max-width: 640px) {
+        .detail_review_body_row {
+            grid-template-columns: 74px minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .detail_review_artwork {
+            width: 74px;
+            height: 74px;
+            border-radius: 16px;
+        }
     }
 
     .detail_empty_reviews {

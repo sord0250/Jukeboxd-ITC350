@@ -52,8 +52,188 @@ async function fetchUserReviews() {
     return await response.json();
 }
 
+async function setReviewLike(reviewId, shouldLike) {
+    const response = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/like`, {
+        method: shouldLike ? "POST" : "DELETE"
+    });
+    const data = await response.json().catch(() => ({}));
+
+    return {
+        success: response.ok && Boolean(data.success),
+        likes: Number(data.likes || 0),
+        liked: Boolean(data.liked),
+        message: data.message || (shouldLike ? "Could not like review." : "Could not unlike review.")
+    };
+}
+
 let allFeedReviews = [];
 let activeFeedFilter = "all";
+let visibleFeedCount = 6;
+const FEED_PAGE_SIZE = 6;
+
+function getLikedReviewStorageKey() {
+    const username = getCurrentUsername();
+    return username ? `liked_reviews:${username}` : null;
+}
+
+function getLikedReviewIds() {
+    const storageKey = getLikedReviewStorageKey();
+    if (!storageKey) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+        console.error("Could not parse liked reviews:", err);
+        return [];
+    }
+}
+
+function hasLikedReview(reviewId) {
+    return getLikedReviewIds().includes(String(reviewId));
+}
+
+function storeLikedReview(reviewId) {
+    const storageKey = getLikedReviewStorageKey();
+    if (!storageKey) {
+        return;
+    }
+
+    const likedReviewIds = new Set(getLikedReviewIds());
+    likedReviewIds.add(String(reviewId));
+    localStorage.setItem(storageKey, JSON.stringify(Array.from(likedReviewIds)));
+}
+
+function removeLikedReview(reviewId) {
+    const storageKey = getLikedReviewStorageKey();
+    if (!storageKey) {
+        return;
+    }
+
+    const likedReviewIds = getLikedReviewIds().filter((id) => id !== String(reviewId));
+    localStorage.setItem(storageKey, JSON.stringify(likedReviewIds));
+}
+
+function updateFeedReviewLikeCount(reviewId, likeCount) {
+    allFeedReviews = allFeedReviews.map((entry) => {
+        if (String(entry.review_id) !== String(reviewId)) {
+            return entry;
+        }
+
+        return {
+            ...entry,
+            num_likes: likeCount,
+            review_num_likes: likeCount,
+            R_NumOfLikes: likeCount
+        };
+    });
+}
+
+function updateReviewLikeCountInList(reviews, reviewId, likeCount) {
+    return reviews.map((entry) => {
+        if (String(entry.review_id) !== String(reviewId)) {
+            return entry;
+        }
+
+        return normalizeFeedReview({
+            ...entry,
+            num_likes: likeCount,
+            review_num_likes: likeCount,
+            R_NumOfLikes: likeCount
+        });
+    });
+}
+
+function getReviewLikeCount(entry) {
+    const rawLikeCount =
+        entry?.num_likes ??
+        entry?.review_num_likes ??
+        entry?.R_NumOfLikes ??
+        0;
+
+    const parsedLikeCount = Number(rawLikeCount);
+    return Number.isFinite(parsedLikeCount) ? parsedLikeCount : 0;
+}
+
+function normalizeFeedReview(entry) {
+    return {
+        ...entry,
+        num_likes: getReviewLikeCount(entry)
+    };
+}
+
+function getReviewArtwork(entry) {
+    const fallbackArtwork = entry?.review_type === "artist"
+        ? "/static/img/jb_record.png"
+        : "/static/img/jb_albumcover.png";
+    const artworkTitle =
+        entry?.artwork_alt ||
+        entry?.album_name ||
+        entry?.title ||
+        "Review";
+
+    return {
+        src: entry?.artwork_url || fallbackArtwork,
+        alt: `${artworkTitle} artwork`
+    };
+}
+
+function bindReviewLikeHandler(container, getReviews, setReviews, rerenderReviews) {
+    if (!container) {
+        return;
+    }
+
+    container.addEventListener("click", async (event) => {
+        const likeButton = event.target.closest("[data-like-review-id]");
+        if (!likeButton) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!requireLogin()) {
+            return;
+        }
+
+        if (likeButton.dataset.isPending === "true") {
+            return;
+        }
+
+        const reviewId = likeButton.dataset.likeReviewId;
+        if (!reviewId) {
+            return;
+        }
+
+        const shouldLike = !hasLikedReview(reviewId);
+        likeButton.dataset.isPending = "true";
+
+        try {
+            const result = await setReviewLike(reviewId, shouldLike);
+
+            if (!result.success) {
+                alert(result.message);
+                return;
+            }
+
+            if (result.liked) {
+                storeLikedReview(reviewId);
+            } else {
+                removeLikedReview(reviewId);
+            }
+
+            updateFeedReviewLikeCount(reviewId, result.likes);
+            setReviews(updateReviewLikeCountInList(getReviews(), reviewId, result.likes));
+            rerenderReviews();
+        } catch (err) {
+            console.error("Like error:", err);
+            alert("Could not update likes right now.");
+        } finally {
+            delete likeButton.dataset.isPending;
+        }
+    });
+}
 
 // -------------------- CARD BUILDERS --------------------
 
@@ -102,6 +282,56 @@ function createProfileReviewCard(entry) {
             <h3 class="profile_review_headline">${headline}</h3>
             <p class="profile_review_body">${entry.R_Text || entry.review_text || ""}</p>
             <span>⭐ ${entry.R_Rating || entry.review_rating || ""}</span>
+        </article>
+    `;
+}
+
+function createFeedCard(entry, index = 0) {
+    const likedState = hasLikedReview(entry.review_id);
+    const likeCount = getReviewLikeCount(entry);
+    const artwork = getReviewArtwork(entry);
+
+    return `
+        <article
+            class="detail_review_card"
+            data-item-id="${entry.review_id}"
+            data-review-index="${index}"
+        >
+            <div class="detail_review_head">
+                <div class="detail_review_identity">
+                    <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
+                    <span class="detail_review_username">${entry.username || "user"}</span>
+                </div>
+                <span class="detail_review_rating">&#9733; ${entry.review_rating}</span>
+            </div>
+
+            <div class="detail_review_body_row">
+                <img class="detail_review_artwork" src="${artwork.src}" alt="${artwork.alt}">
+
+                <div class="detail_review_copy">
+                    <h3 class="detail_review_title">${entry.title}</h3>
+
+                    <p class="detail_review_snippet">${entry.review_text}</p>
+                </div>
+            </div>
+
+            <div class="detail_review_footer">
+                <p class="detail_review_meta">
+                    ${(entry.review_type || "").toUpperCase()}
+                    ${entry.album_name ? " &middot; " + entry.album_name : ""}
+                </p>
+
+                <button
+                    class="detail_review_like_button${likedState ? " is-liked" : ""}"
+                    type="button"
+                    data-like-review-id="${entry.review_id}"
+                    aria-pressed="${likedState}"
+                    aria-label="${likedState ? "Unlike review" : "Like review"}"
+                >
+                    <span class="detail_review_like_icon" aria-hidden="true">&hearts;</span>
+                    <span class="detail_review_like_count">${likeCount}</span>
+                </button>
+            </div>
         </article>
     `;
 }
@@ -166,6 +396,7 @@ function initSearchPage() {
 
 async function initHomeFeed() {
     const feedList = document.getElementById("feed-list");
+    const feedScrollTrigger = document.getElementById("feed-scroll-trigger");
     const filterButtons = Array.from(document.querySelectorAll(".feed_filter_button"));
     if (!feedList) return;
 
@@ -189,6 +420,32 @@ async function initHomeFeed() {
         });
     }
 
+    function hasMoreReviews() {
+        return visibleFeedCount < getFilteredReviews().length;
+    }
+
+    function loadMoreReviews() {
+        if (!hasMoreReviews()) {
+            return;
+        }
+
+        visibleFeedCount += FEED_PAGE_SIZE;
+        renderFeed();
+    }
+
+    function maybeLoadMoreOnScroll() {
+        if (!feedScrollTrigger || !hasMoreReviews()) {
+            return;
+        }
+
+        const triggerTop = feedScrollTrigger.getBoundingClientRect().top;
+        const preloadOffset = 120;
+
+        if (triggerTop <= window.innerHeight + preloadOffset) {
+            loadMoreReviews();
+        }
+    }
+
     function renderFeed() {
         const reviews = getFilteredReviews();
 
@@ -203,21 +460,54 @@ async function initHomeFeed() {
         }
 
         feedList.innerHTML = reviews
+            .slice(0, visibleFeedCount)
             .map((entry, index) => createFeedCard(entry, index))
             .join("");
+        window.requestAnimationFrame(maybeLoadMoreOnScroll);
     }
+
+    bindReviewLikeHandler(
+        feedList,
+        () => allFeedReviews,
+        (reviews) => {
+            allFeedReviews = reviews;
+        },
+        renderFeed
+    );
 
     filterButtons.forEach((button) => {
         button.addEventListener("click", () => {
             activeFeedFilter = button.dataset.feedFilter || "all";
+            visibleFeedCount = FEED_PAGE_SIZE;
             updateFilterButtons();
             renderFeed();
         });
     });
 
+    if (feedScrollTrigger && "IntersectionObserver" in window) {
+        const feedObserver = new IntersectionObserver((entries) => {
+            const triggerIsVisible = entries.some((entry) => entry.isIntersecting);
+
+            if (triggerIsVisible) {
+                loadMoreReviews();
+            }
+        }, {
+            rootMargin: "0px 0px 120px 0px"
+        });
+
+        feedObserver.observe(feedScrollTrigger);
+    } else {
+        window.addEventListener("scroll", maybeLoadMoreOnScroll, { passive: true });
+    }
+
+    window.addEventListener("resize", maybeLoadMoreOnScroll);
+
     try {
         const response = await fetch("/api/feed");
-        allFeedReviews = await response.json();
+        const payload = await response.json();
+        const reviews = Array.isArray(payload) ? payload : payload.data || [];
+        allFeedReviews = reviews.map(normalizeFeedReview);
+        visibleFeedCount = FEED_PAGE_SIZE;
         updateFilterButtons();
         renderFeed();
     } catch (err) {
@@ -234,25 +524,40 @@ async function initProfilePage() {
 
     if (!requireLogin()) return;
 
-    try {
-        const payload = await fetchUserReviews();
-        const reviews = payload.data || payload;
+    let profileReviews = [];
 
+    function renderProfileReviews() {
         if (reviewCount) {
-            reviewCount.textContent = reviews.length;
+            reviewCount.textContent = profileReviews.length;
         }
 
-        if (!reviews.length) {
+        if (!profileReviews.length) {
             profileReviewList.innerHTML = `
-                <article class="profile_review_card">
-                    <h3 class="profile_review_headline">No reviews yet</h3>
-                    <p class="profile_review_body">This user has not posted any reviews yet.</p>
+                <article class="detail_review_card">
+                    <h3 class="detail_review_title">No reviews yet</h3>
+                    <p class="detail_review_snippet">This user has not posted any reviews yet.</p>
                 </article>
             `;
             return;
         }
 
-        profileReviewList.innerHTML = reviews.map(createProfileReviewCard).join("");
+        profileReviewList.innerHTML = profileReviews.map(createFeedCard).join("");
+    }
+
+    bindReviewLikeHandler(
+        profileReviewList,
+        () => profileReviews,
+        (reviews) => {
+            profileReviews = reviews;
+        },
+        renderProfileReviews
+    );
+
+    try {
+        const payload = await fetchUserReviews();
+        const reviews = payload.data || payload;
+        profileReviews = reviews.map(normalizeFeedReview);
+        renderProfileReviews();
     } catch (err) {
         console.error("Profile load error:", err);
     }
@@ -381,6 +686,7 @@ function initAddPage() {
         const reviewData = {
             R_Text: reviewText.value.trim(),
             R_Rating: Number(ratingInput.value),
+            R_NumOfLikes: 0,
             U_ID: Number(userId),
             U_Username: username,
             R_TimeCreated: new Date().toISOString()
