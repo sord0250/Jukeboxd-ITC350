@@ -281,6 +281,89 @@ def _normalize_feed_payload(feed_payload, review_payload, song_payload, album_pa
     return normalized_rows
 
 
+def _normalize_search_results(search_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
+    search_rows, container_key = _extract_payload_list(search_payload)
+    song_rows, _ = _extract_payload_list(song_payload)
+    album_rows, _ = _extract_payload_list(album_payload)
+    artist_rows, _ = _extract_payload_list(artist_payload)
+    song_artist_names_map, album_artist_names_map = _build_artist_name_maps(
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
+
+    song_map = {}
+    for song in song_rows:
+        song_id = song.get("S_ID") or song.get("id")
+        if song_id is None:
+            continue
+        song_map[str(song_id)] = song
+
+    album_map = {}
+    for album in album_rows:
+        album_id = album.get("AL_ID") or album.get("id")
+        if album_id is None:
+            continue
+        album_map[str(album_id)] = album
+
+    artist_map = {}
+    for artist in artist_rows:
+        artist_id = artist.get("ART_ID") or artist.get("id")
+        if artist_id is None:
+            continue
+        artist_map[str(artist_id)] = artist
+
+    normalized_rows = []
+    for row in search_rows:
+        normalized_row = dict(row)
+        item_type = _normalize_search_item_type(
+            row.get("type") or row.get("collection") or row.get("collection_name")
+        )
+        item_id = row.get("id") or row.get("S_ID") or row.get("AL_ID") or row.get("ART_ID")
+        title = row.get("title") or row.get("name")
+        artwork_url = None
+        artwork_alt = title or "Search result"
+        supporting_text = None
+
+        if item_type == "song" and item_id is not None:
+            matched_song = song_map.get(str(item_id), {})
+            album_id = matched_song.get("AL_ID")
+            matched_album = album_map.get(str(album_id), {}) if album_id is not None else {}
+            title = title or matched_song.get("S_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name") or title
+            supporting_text = song_artist_names_map.get(str(item_id))
+        elif item_type == "album" and item_id is not None:
+            matched_album = album_map.get(str(item_id), {})
+            title = title or matched_album.get("AL_Name")
+            artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
+            artwork_alt = matched_album.get("AL_Name") or title
+            supporting_text = album_artist_names_map.get(str(item_id))
+        elif item_type == "artist" and item_id is not None:
+            matched_artist = artist_map.get(str(item_id), {})
+            title = title or matched_artist.get("ART_Name")
+            artwork_url = _resolve_media_url(matched_artist.get("ART_Image"))
+            artwork_alt = matched_artist.get("ART_Name") or title
+            supporting_text = matched_artist.get("ART_Genre")
+
+        normalized_row["id"] = item_id
+        normalized_row["type"] = item_type
+        normalized_row["title"] = title or "Untitled Result"
+        normalized_row["artwork_url"] = artwork_url
+        normalized_row["artwork_alt"] = artwork_alt or normalized_row["title"]
+        normalized_row["supporting_text"] = supporting_text
+        normalized_rows.append(normalized_row)
+
+    if container_key == "data":
+        result = dict(search_payload)
+        result["data"] = normalized_rows
+        return result
+
+    return normalized_rows
+
+
 def _normalize_user_feed_payload(user_payload, review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     user_rows, container_key = _extract_payload_list(user_payload)
     review_rows, _ = _extract_payload_list(review_payload)
@@ -745,6 +828,36 @@ def _fetch_review_reference_payloads():
     )
 
 
+def _fetch_search_reference_payloads():
+    song_response = requests.get(
+        f"{DIRECTUS_URL}/items/SONG",
+        params={"fields": "S_ID,S_Name,AL_ID", "limit": -1}
+    )
+    album_response = requests.get(
+        f"{DIRECTUS_URL}/items/ALBUM",
+        params={"fields": "AL_ID,AL_Name,AL_Image", "limit": -1}
+    )
+    artist_response = requests.get(
+        f"{DIRECTUS_URL}/items/ARTIST",
+        params={"fields": "ART_ID,ART_Name,ART_Genre,ART_Image", "limit": -1}
+    )
+    makes_song_response = requests.get(
+        f"{DIRECTUS_URL}/items/MAKES_SONG",
+        params={"fields": "S_ID,ART_ID", "limit": -1}
+    )
+    makes_album_response = requests.get(
+        f"{DIRECTUS_URL}/items/MAKES_ALBUM",
+        params={"fields": "AL_ID,ART_ID", "limit": -1}
+    )
+    return (
+        song_response.json(),
+        album_response.json(),
+        artist_response.json(),
+        makes_song_response.json(),
+        makes_album_response.json()
+    )
+
+
 def _fetch_review_view_payloads():
     song_review_response = requests.get(f"{DIRECTUS_URL}/song_review/")
     album_review_response = requests.get(f"{DIRECTUS_URL}/album_reviews/")
@@ -899,8 +1012,16 @@ def api_search():
 
     try:
         r = requests.get(f"{DIRECTUS_URL}/search", params={"q": q})
-        data = r.json()
-        return jsonify(data)
+        search_payload = r.json()
+        song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_search_reference_payloads()
+        return jsonify(_normalize_search_results(
+            search_payload,
+            song_payload,
+            album_payload,
+            artist_payload,
+            makes_song_payload,
+            makes_album_payload
+        ))
 
     except Exception as e:
         print("Search error:", e)

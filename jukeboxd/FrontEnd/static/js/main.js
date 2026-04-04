@@ -33,7 +33,14 @@ function logoutUser() {
 
 async function fetchSearch(query) {
     const response = await fetch("/api/search?q=" + encodeURIComponent(query));
-    return await response.json();
+    const data = await response.json().catch(() => ([]));
+    if (Array.isArray(data)) {
+        return data;
+    }
+    if (Array.isArray(data?.data)) {
+        return data.data;
+    }
+    return [];
 }
 
 async function fetchSearchRelatedReviews(itemType, itemId, limit = 4) {
@@ -387,6 +394,7 @@ function initSearchPage() {
     let relatedReviewsLoading = false;
     let relatedReviewsError = "";
     let activeReviewRequestId = 0;
+    let currentSearchResults = [];
 
     function normalizeSearchItemType(value) {
         const normalizedValue = String(value || "").trim().toLowerCase();
@@ -415,6 +423,24 @@ function initSearchPage() {
             : "/static/img/jb_albumcover.png";
     }
 
+    function getSearchItemArtwork(item, fallbackEntry = null) {
+        if (item?.artwork_url) {
+            return {
+                src: item.artwork_url,
+                alt: item.artwork_alt || `${item.title || "Selected item"} artwork`
+            };
+        }
+
+        if (fallbackEntry) {
+            return getReviewArtwork(fallbackEntry);
+        }
+
+        return {
+            src: getSearchFallbackArtwork(item?.type),
+            alt: `${item?.title || "Selected item"} artwork`
+        };
+    }
+
     function openDetailModal() {
         if (!detailModal) {
             return;
@@ -441,12 +467,7 @@ function initSearchPage() {
         const itemType = normalizeSearchItemType(activeSearchItem.type);
         const itemTypeLabel = formatSearchItemType(itemType);
         const leadReview = activeRelatedReviews[0];
-        const artwork = leadReview
-            ? getReviewArtwork(leadReview)
-            : {
-                src: getSearchFallbackArtwork(itemType),
-                alt: `${activeSearchItem.title} artwork`
-            };
+        const artwork = getSearchItemArtwork(activeSearchItem, leadReview);
         const reviewCountLabel = relatedReviewsLoading
             ? "Loading reviews..."
             : relatedReviewsError
@@ -504,15 +525,17 @@ function initSearchPage() {
 
         if (!normalizedQuery) {
             count.textContent = "Start typing to search";
+            currentSearchResults = [];
             resultsContainer.innerHTML = "";
             return;
         }
 
         const results = await fetchSearch(normalizedQuery);
+        currentSearchResults = Array.isArray(results) ? results : [];
 
-        count.textContent = `${results.length} match${results.length === 1 ? "" : "es"}`;
+        count.textContent = `${currentSearchResults.length} match${currentSearchResults.length === 1 ? "" : "es"}`;
 
-        if (!results.length) {
+        if (!currentSearchResults.length) {
             resultsContainer.innerHTML = `
                 <article class="search_empty">
                     <h2 class="search_empty_title">No matches found</h2>
@@ -522,18 +545,23 @@ function initSearchPage() {
             return;
         }
 
-        resultsContainer.innerHTML = results.map((item) => {
+        resultsContainer.innerHTML = currentSearchResults.map((item) => {
             const itemType = normalizeSearchItemType(item.type);
             const itemTypeLabel = formatSearchItemType(item.type);
+            const artwork = getSearchItemArtwork(item);
+            const supportingText = item.supporting_text || `Open the most liked reviews for this ${itemType}.`;
 
             return `
                 <button class="search_card"
                     data-item-id="${item.id}"
                     data-item-type="${itemType}">
+                    <div class="search_card_media">
+                        <img class="search_card_art" src="${artwork.src}" alt="${artwork.alt}">
+                    </div>
                     <div class="search_card_copy">
                         <p class="search_card_type">${itemTypeLabel}</p>
                         <h3 class="search_card_title">${item.title}</h3>
-                        <p class="search_card_artist">Open the most liked reviews for this ${itemType}.</p>
+                        <p class="search_card_artist">${supportingText}</p>
                     </div>
                 </button>
             `;
@@ -550,7 +578,11 @@ function initSearchPage() {
             return;
         }
 
-        activeSearchItem = {
+        const selectedItem = currentSearchResults.find((item) => (
+            String(item.id) === String(card.dataset.itemId)
+            && normalizeSearchItemType(item.type) === normalizeSearchItemType(card.dataset.itemType)
+        ));
+        activeSearchItem = selectedItem || {
             id: card.dataset.itemId,
             type: normalizeSearchItemType(card.dataset.itemType),
             title: card.querySelector(".search_card_title")?.textContent?.trim() || "Selected item"
