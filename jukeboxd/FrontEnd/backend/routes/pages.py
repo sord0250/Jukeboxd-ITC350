@@ -1,6 +1,6 @@
 from flask import redirect, render_template, session
 
-from backend.helpers.input_sanitization import _sanitize_username
+from backend.helpers.input_sanitization import _sanitize_existing_username
 
 
 def register_page_routes(app):
@@ -32,7 +32,7 @@ def register_page_routes(app):
             return redirect("/login")
 
         try:
-            normalized_username = _sanitize_username(username)
+            normalized_username = _sanitize_existing_username(username)
         except ValueError:
             return redirect("/profile")
 

@@ -16,7 +16,7 @@ from backend.helpers.friendships import (
     _normalize_friendship_record,
     _safe_response_json,
 )
-from backend.helpers.input_sanitization import _sanitize_username
+from backend.helpers.input_sanitization import _sanitize_existing_username
 from backend.helpers.profile import _get_user_by_username
 
 
@@ -120,7 +120,7 @@ def register_friendship_routes(app):
                 return jsonify({"success": False, "message": "A username is required."}), 400
 
             try:
-                requested_username = _sanitize_username(requested_username)
+                requested_username = _sanitize_existing_username(requested_username)
             except ValueError as error:
                 return jsonify({"success": False, "message": str(error)}), 400
 
@@ -159,7 +159,7 @@ def register_friendship_routes(app):
 
         data = request.get_json(silent=True) or {}
         try:
-            target_username = _sanitize_username(data.get("username"), "Target username")
+            target_username = _sanitize_existing_username(data.get("username"), "Target username")
         except ValueError as error:
             return jsonify({"success": False, "message": str(error)}), 400
 

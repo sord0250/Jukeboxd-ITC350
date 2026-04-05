@@ -142,6 +142,25 @@ def _sanitize_username(value, field_name="Username"):
     return sanitized_value
 
 
+def _sanitize_existing_username(value, field_name="Username"):
+    sanitized_value = _sanitize_plain_text(
+        value,
+        field_name=field_name,
+        max_length=USERNAME_MAX_LENGTH,
+        allow_newlines=False
+    )
+
+    if not sanitized_value:
+        raise ValueError(f"{field_name} is required.")
+
+    if len(sanitized_value) < USERNAME_MIN_LENGTH or len(sanitized_value) > USERNAME_MAX_LENGTH:
+        raise ValueError(
+            f"{field_name} must be {USERNAME_MIN_LENGTH}-{USERNAME_MAX_LENGTH} characters."
+        )
+
+    return sanitized_value
+
+
 def _sanitize_email(value):
     sanitized_value = _strip_control_characters(value, allow_newlines=False).strip().lower()
 
@@ -225,7 +244,7 @@ def _sanitize_positive_int(value, field_name):
 
 
 def _build_sanitized_review_payload(data, username, user_id):
-    sanitized_username = _sanitize_username(username)
+    sanitized_username = _sanitize_existing_username(username)
     sanitized_user_id = _sanitize_positive_int(user_id, "User")
     sanitized_review_text = _sanitize_review_text((data or {}).get("R_Text"))
     sanitized_review_rating = _sanitize_review_rating((data or {}).get("R_Rating"))

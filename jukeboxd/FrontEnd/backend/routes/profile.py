@@ -4,6 +4,7 @@ from flask import jsonify, request, session
 from backend.config import DIRECTUS_URL
 from backend.helpers.common import _extract_api_error
 from backend.helpers.input_sanitization import (
+    _sanitize_existing_username,
     _sanitize_email,
     _sanitize_name,
     _sanitize_username,
@@ -26,7 +27,7 @@ def register_profile_routes(app):
 
         if request.method == "GET" and requested_username and requested_username != current_username:
             try:
-                requested_username = _sanitize_username(requested_username)
+                requested_username = _sanitize_existing_username(requested_username)
             except ValueError as error:
                 return jsonify({
                     "success": False,
