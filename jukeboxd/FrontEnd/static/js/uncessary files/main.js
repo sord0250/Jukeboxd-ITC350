@@ -75,6 +75,34 @@ async function fetchUserReviews() {
     return await response.json();
 }
 
+async function fetchCurrentProfile() {
+    const response = await fetch("/api/profile");
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not load your profile.");
+    }
+
+    return data.data || {};
+}
+
+async function updateCurrentProfile(profileData) {
+    const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(profileData)
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not update your profile.");
+    }
+
+    return data.data || {};
+}
+
 async function setReviewLike(reviewId, shouldLike) {
     const response = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/like`, {
         method: shouldLike ? "POST" : "DELETE"
@@ -373,6 +401,27 @@ function formatMemberSince(value) {
         month: "long",
         day: "numeric"
     }).format(parsed);
+}
+
+function renderProfileSummary(user) {
+    const nameElement = document.getElementById("profile-name");
+    const handleElement = document.getElementById("profile-handle");
+    const memberElement = document.getElementById("profile-member");
+    const username = String(user?.U_Username || "").trim();
+
+    if (nameElement) {
+        nameElement.textContent = username || "Profile";
+    }
+
+    if (handleElement) {
+        handleElement.textContent = username ? `@${username}` : "";
+    }
+
+    if (memberElement) {
+        memberElement.textContent = formatMemberSince(
+            user?.U_DateCreated || user?.date_created
+        );
+    }
 }
 
 // -------------------- SEARCH PAGE --------------------
@@ -785,11 +834,32 @@ async function initHomeFeed() {
 async function initProfilePage() {
     const profileReviewList = document.getElementById("profile-review-list");
     const reviewCount = document.getElementById("profile-reviews");
+    const editProfileButton = document.getElementById("edit-profile-button");
+    const editProfileModal = document.getElementById("edit-profile-modal");
+    const editProfileForm = document.getElementById("edit-profile-form");
+    const editProfileMessage = document.getElementById("edit-profile-message");
+    const closeEditProfileButton = document.getElementById("edit-profile-close");
+    const cancelEditProfileButton = document.getElementById("edit-profile-cancel");
+    const saveEditProfileButton = document.getElementById("edit-profile-save");
+    const firstNameInput = document.getElementById("edit-profile-first-name");
+    const lastNameInput = document.getElementById("edit-profile-last-name");
+    const usernameInput = document.getElementById("edit-profile-username");
+    const emailInput = document.getElementById("edit-profile-email");
     if (!profileReviewList) return;
 
     if (!requireLogin()) return;
 
     let profileReviews = [];
+    let currentProfile = null;
+
+    function setEditProfileMessage(text = "", isError = false) {
+        if (!editProfileMessage) {
+            return;
+        }
+
+        editProfileMessage.textContent = text;
+        editProfileMessage.classList.toggle("is_error", isError);
+    }
 
     function renderProfileReviews() {
         if (reviewCount) {
@@ -809,6 +879,44 @@ async function initProfilePage() {
         profileReviewList.innerHTML = profileReviews.map(createFeedCard).join("");
     }
 
+    function openEditProfileModal() {
+        if (!editProfileModal || !editProfileForm || !currentProfile) {
+            return;
+        }
+
+        firstNameInput.value = currentProfile.U_FName || "";
+        lastNameInput.value = currentProfile.U_LName || "";
+        usernameInput.value = currentProfile.U_Username || "";
+        emailInput.value = currentProfile.U_Email || "";
+        saveEditProfileButton.disabled = false;
+        setEditProfileMessage("");
+        editProfileModal.hidden = false;
+        document.body.classList.add("modal_open");
+        firstNameInput.focus();
+    }
+
+    function closeEditProfileModal() {
+        if (!editProfileModal) {
+            return;
+        }
+
+        editProfileModal.hidden = true;
+        document.body.classList.remove("modal_open");
+        saveEditProfileButton.disabled = false;
+        setEditProfileMessage("");
+
+        if (editProfileButton) {
+            editProfileButton.focus();
+        }
+    }
+
+    async function refreshProfileReviews() {
+        const payload = await fetchUserReviews();
+        const reviews = payload.data || payload;
+        profileReviews = reviews.map(normalizeFeedReview);
+        renderProfileReviews();
+    }
+
     bindReviewLikeHandler(
         profileReviewList,
         () => profileReviews,
@@ -818,9 +926,95 @@ async function initProfilePage() {
         renderProfileReviews
     );
 
+    if (editProfileButton) {
+        editProfileButton.addEventListener("click", openEditProfileModal);
+    }
+
+    if (closeEditProfileButton) {
+        closeEditProfileButton.addEventListener("click", closeEditProfileModal);
+    }
+
+    if (cancelEditProfileButton) {
+        cancelEditProfileButton.addEventListener("click", closeEditProfileModal);
+    }
+
+    if (editProfileModal) {
+        editProfileModal.addEventListener("click", (event) => {
+            if (event.target === editProfileModal) {
+                closeEditProfileModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && editProfileModal && !editProfileModal.hidden) {
+            closeEditProfileModal();
+        }
+    });
+
+    if (editProfileForm) {
+        editProfileForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const profileData = {
+                firstName: firstNameInput.value.trim(),
+                lastName: lastNameInput.value.trim(),
+                username: usernameInput.value.trim(),
+                email: emailInput.value.trim()
+            };
+
+            if (!profileData.firstName || !profileData.lastName || !profileData.username || !profileData.email) {
+                setEditProfileMessage("All profile fields are required.", true);
+                return;
+            }
+
+            if (profileData.username.length < 5 || profileData.username.length > 12) {
+                setEditProfileMessage("Username must be 5-12 characters.", true);
+                return;
+            }
+
+            if (!profileData.email.includes("@")) {
+                setEditProfileMessage("Please enter a valid email address.", true);
+                return;
+            }
+
+            saveEditProfileButton.disabled = true;
+            setEditProfileMessage("Saving...");
+
+            try {
+                const updatedProfile = await updateCurrentProfile(profileData);
+                currentProfile = updatedProfile;
+                renderProfileSummary(updatedProfile);
+
+                document.body.dataset.username = updatedProfile.U_Username || "";
+                localStorage.setItem("username", updatedProfile.U_Username || "");
+                localStorage.setItem("user_email", updatedProfile.U_Email || "");
+
+                closeEditProfileModal();
+                try {
+                    await refreshProfileReviews();
+                } catch (refreshErr) {
+                    console.error("Profile review refresh error:", refreshErr);
+                }
+            } catch (err) {
+                console.error("Profile update error:", err);
+                saveEditProfileButton.disabled = false;
+                setEditProfileMessage(err.message || "Could not update your profile.", true);
+            }
+        });
+    }
+
     try {
-        const payload = await fetchUserReviews();
-        const reviews = payload.data || payload;
+        const [profile, reviewPayload] = await Promise.all([
+            fetchCurrentProfile(),
+            fetchUserReviews()
+        ]);
+        currentProfile = profile;
+        document.body.dataset.username = profile.U_Username || "";
+        localStorage.setItem("username", profile.U_Username || "");
+        localStorage.setItem("user_email", profile.U_Email || "");
+        renderProfileSummary(profile);
+        const reviews = reviewPayload.data || reviewPayload;
         profileReviews = reviews.map(normalizeFeedReview);
         renderProfileReviews();
     } catch (err) {
@@ -1212,23 +1406,6 @@ function initNavbarAccount() {
     }
 }
 
-// -------------------- LOAD PROFILE DATA --------------------
-
-async function loadProfile() {
-    const userId = document.body.dataset.userId;
-    if (!userId) return;
-
-    const res = await fetch(`http://64.23.156.15:8055/items/USER/${userId}`);
-    const json = await res.json();
-    const user = json.data;
-
-    document.getElementById("profile-name").textContent = user.U_Username;
-    document.getElementById("profile-handle").textContent = "@" + user.U_Username;
-    document.getElementById("profile-member").textContent = formatMemberSince(
-        user.U_DateCreated || user.date_created
-    );
-}
-
 // -------------------- PAGE INITIALIZER --------------------
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1239,5 +1416,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initAddPage();
     initLoginPage();
     initRegisterPage();
-    loadProfile();
 });

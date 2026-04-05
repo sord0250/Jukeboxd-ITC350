@@ -38,7 +38,7 @@
                 <div class="profile_actions_card">
                     <h2 class="profile_section_title">Account</h2>
                     <div class="profile_action_list">
-                        <button class="profile_action_button" type="button">Edit profile</button>
+                        <button id="edit-profile-button" class="profile_action_button" type="button">Edit profile</button>
                         <button class="profile_action_button" type="button">Settings</button>
                         <button class="profile_action_button profile_action_button_logout" type="button">Log out</button>
                     </div>
@@ -57,6 +57,48 @@
         </section>
     </main>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <div id="edit-profile-modal" class="modal_overlay" hidden>
+        <div class="modal_shell modal_shell_profile" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title">
+            <button id="edit-profile-close" class="modal_close" type="button" aria-label="Close edit profile dialog">&times;</button>
+
+            <form id="edit-profile-form" class="profile_edit_form" novalidate>
+                <p class="review_modal_meta">Account</p>
+                <h2 id="edit-profile-title" class="profile_edit_title">Edit profile</h2>
+                <p class="profile_edit_copy">Update the basics for how your account appears across jukeboxd.</p>
+
+                <div class="profile_edit_grid">
+                    <label class="profile_edit_field" for="edit-profile-first-name">
+                        <span class="profile_edit_label">First name</span>
+                        <input id="edit-profile-first-name" class="profile_edit_input" type="text" name="firstName" autocomplete="given-name" maxlength="40">
+                    </label>
+
+                    <label class="profile_edit_field" for="edit-profile-last-name">
+                        <span class="profile_edit_label">Last name</span>
+                        <input id="edit-profile-last-name" class="profile_edit_input" type="text" name="lastName" autocomplete="family-name" maxlength="40">
+                    </label>
+
+                    <label class="profile_edit_field" for="edit-profile-username">
+                        <span class="profile_edit_label">Username</span>
+                        <input id="edit-profile-username" class="profile_edit_input profile_edit_input_locked" type="text" name="username" autocomplete="username" minlength="5" maxlength="12" readonly disabled aria-describedby="edit-profile-username-note">
+                        <span id="edit-profile-username-note" class="profile_edit_hint">Username changes are locked for now.</span>
+                    </label>
+
+                    <label class="profile_edit_field" for="edit-profile-email">
+                        <span class="profile_edit_label">Email</span>
+                        <input id="edit-profile-email" class="profile_edit_input" type="email" name="email" autocomplete="email" maxlength="120">
+                    </label>
+                </div>
+
+                <p id="edit-profile-message" class="profile_edit_message" aria-live="polite"></p>
+
+                <div class="profile_edit_actions">
+                    <button id="edit-profile-cancel" class="profile_edit_button profile_edit_button_secondary" type="button">Cancel</button>
+                    <button id="edit-profile-save" class="profile_edit_button" type="submit">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% include "components/scripts.html" %}
 </body>
 </html>

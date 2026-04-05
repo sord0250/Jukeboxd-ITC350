@@ -30,6 +30,6 @@
             <img class="feed_back_to_top_icon" src="{{ url_for('static', filename='img/jb_back_to_top.svg') }}" alt="">
         </button>
     </main>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% include "components/scripts.html" %}
 </body>
 </html>
