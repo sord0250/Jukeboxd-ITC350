@@ -23,6 +23,36 @@ from backend.helpers.review_normalization import (
 )
 
 
+def _get_normalized_reviews():
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
+    return _normalize_review_records(
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload
+    )
+
+
+def _get_normalized_profile_reviews(filtered_user_reviews):
+    review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
+    song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
+
+    return _normalize_user_profile_reviews(
+        filtered_user_reviews,
+        review_payload,
+        song_payload,
+        album_payload,
+        artist_payload,
+        makes_song_payload,
+        makes_album_payload,
+        song_review_payload,
+        album_review_payload,
+        artist_review_payload
+    )
+
+
 def register_review_routes(app):
     @app.route("/api/reviews/<int:review_id>/like", methods=["POST", "DELETE"])
     def like_review(review_id):
@@ -112,15 +142,7 @@ def register_review_routes(app):
                 "message": "A valid item type and id are required."
             }), 400
 
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        normalized_reviews = _normalize_review_records(
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload
-        )
+        normalized_reviews = _get_normalized_reviews()
         review_rows, _ = _extract_payload_list(normalized_reviews)
 
         matching_reviews = [
@@ -136,51 +158,44 @@ def register_review_routes(app):
             reverse=True
         )
 
+        rated_values = []
+        for review in matching_reviews:
+            raw_rating = review.get("review_rating")
+
+            try:
+                numeric_rating = float(raw_rating)
+            except (TypeError, ValueError):
+                continue
+
+            if numeric_rating != numeric_rating:
+                continue
+
+            rated_values.append(numeric_rating)
+
+        average_rating = None
+        if rated_values:
+            average_rating = round(sum(rated_values) / len(rated_values), 1)
+
         return jsonify({
             "data": matching_reviews[:limit],
             "total": len(matching_reviews),
+            "average_rating": average_rating,
+            "rated_total": len(rated_values),
             "item_type": item_type,
             "item_id": item_id
         })
 
     @app.route("/api/song_reviews")
     def song_reviews():
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        normalized_reviews = _normalize_review_records(
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload
-        )
-        return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="song"))
+        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="song"))
 
     @app.route("/api/album_reviews")
     def album_reviews():
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        normalized_reviews = _normalize_review_records(
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload
-        )
-        return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="album"))
+        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="album"))
 
     @app.route("/api/artist_reviews")
     def artist_reviews():
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        normalized_reviews = _normalize_review_records(
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload
-        )
-        return jsonify(_filter_normalized_reviews(normalized_reviews, review_type="artist"))
+        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="artist"))
 
     @app.route("/api/user_reviews")
     def user_reviews():
@@ -195,21 +210,7 @@ def register_review_routes(app):
             username=username,
             user_id=user_id
         )
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
-
-        return jsonify(_normalize_user_profile_reviews(
-            filtered_user_reviews,
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload,
-            song_review_payload,
-            album_review_payload,
-            artist_review_payload
-        ))
+        return jsonify(_get_normalized_profile_reviews(filtered_user_reviews))
 
     @app.route("/api/feed")
     def feed():
@@ -242,18 +243,4 @@ def register_review_routes(app):
     def get_user_reviews(username):
         user_review_response = requests.get(f"{DIRECTUS_URL}/user_review/")
         filtered_user_reviews = _filter_user_reviews(user_review_response.json(), username=username)
-        review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload = _fetch_review_reference_payloads()
-        song_review_payload, album_review_payload, artist_review_payload = _fetch_review_view_payloads()
-
-        return jsonify(_normalize_user_profile_reviews(
-            filtered_user_reviews,
-            review_payload,
-            song_payload,
-            album_payload,
-            artist_payload,
-            makes_song_payload,
-            makes_album_payload,
-            song_review_payload,
-            album_review_payload,
-            artist_review_payload
-        ))
+        return jsonify(_get_normalized_profile_reviews(filtered_user_reviews))

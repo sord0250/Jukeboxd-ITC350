@@ -1244,6 +1244,45 @@
         color: #564841;
     }
 
+    .detail_average_rating {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        width: fit-content;
+        max-width: 100%;
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(67, 54, 48, 0.12);
+        border-radius: 18px;
+        background: rgba(255, 251, 245, 0.9);
+    }
+
+    .detail_average_label {
+        font-size: 0.76rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8a7567;
+    }
+
+    .detail_average_stars {
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        color: #b88625;
+    }
+
+    .detail_average_score {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #2f2622;
+    }
+
+    .detail_average_count,
+    .detail_average_empty {
+        font-size: 0.92rem;
+        color: #7b695f;
+    }
+
     .detail_reviews_section {
         margin-top: 26px;
     }

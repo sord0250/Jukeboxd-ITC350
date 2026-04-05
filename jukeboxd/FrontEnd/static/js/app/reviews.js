@@ -167,23 +167,6 @@ function bindReviewLikeHandler(container, getReviews, setReviews, rerenderReview
     });
 }
 
-function createProfileReviewCard(entry) {
-    const headline =
-        entry.S_Name ||
-        entry.AL_Name ||
-        entry.ART_Name ||
-        entry.title ||
-        "Untitled Review";
-
-    return `
-        <article class="profile_review_card">
-            <h3 class="profile_review_headline">${headline}</h3>
-            <p class="profile_review_body">${entry.R_Text || entry.review_text || ""}</p>
-            <span>&#9733; ${entry.R_Rating || entry.review_rating || ""}</span>
-        </article>
-    `;
-}
-
 function formatFeedRatingDisplay(value) {
     const numericRating = Number(value);
     if (!Number.isFinite(numericRating)) {
@@ -197,6 +180,23 @@ function formatFeedRatingDisplay(value) {
     return {
         stars: `${filledStar.repeat(starCount)}${emptyStar.repeat(5 - starCount)}`,
         score: `${starCount}/5`
+    };
+}
+
+function formatAverageRatingDisplay(value) {
+    const numericRating = Number(value);
+    if (!Number.isFinite(numericRating)) {
+        return { stars: "", score: "" };
+    }
+
+    const clampedRating = Math.max(0, Math.min(5, numericRating));
+    const starCount = Math.round(clampedRating);
+    const filledStar = "&#9733;";
+    const emptyStar = "&#9734;";
+
+    return {
+        stars: `${filledStar.repeat(starCount)}${emptyStar.repeat(5 - starCount)}`,
+        score: `${clampedRating.toFixed(1)}/5`
     };
 }
 

@@ -12,6 +12,8 @@ function initSearchPage() {
     let activeSearchItem = null;
     let activeRelatedReviews = [];
     let activeRelatedReviewCount = 0;
+    let activeAverageRating = null;
+    let activeAverageRatingCount = 0;
     let relatedReviewsLoading = false;
     let relatedReviewsError = "";
     let activeReviewRequestId = 0;
@@ -89,6 +91,7 @@ function initSearchPage() {
         const itemTypeLabel = formatSearchItemType(itemType);
         const leadReview = activeRelatedReviews[0];
         const artwork = getSearchItemArtwork(activeSearchItem, leadReview);
+        const averageRatingDisplay = formatAverageRatingDisplay(activeAverageRating);
         const reviewCountLabel = relatedReviewsLoading
             ? "Loading reviews..."
             : relatedReviewsError
@@ -96,6 +99,35 @@ function initSearchPage() {
                 : activeRelatedReviewCount > activeRelatedReviews.length
                     ? `Showing ${activeRelatedReviews.length} of ${activeRelatedReviewCount} reviews`
                     : `${activeRelatedReviewCount} review${activeRelatedReviewCount === 1 ? "" : "s"}`;
+        const averageRatingMarkup = relatedReviewsLoading
+            ? `
+                <div class="detail_average_rating">
+                    <span class="detail_average_label">Community average</span>
+                    <span class="detail_average_empty">Loading rating...</span>
+                </div>
+            `
+            : relatedReviewsError
+                ? `
+                    <div class="detail_average_rating">
+                        <span class="detail_average_label">Community average</span>
+                        <span class="detail_average_empty">Could not load rating</span>
+                    </div>
+                `
+            : Number.isFinite(Number(activeAverageRating)) && activeAverageRatingCount > 0
+                ? `
+                    <div class="detail_average_rating">
+                        <span class="detail_average_label">Community average</span>
+                        <span class="detail_average_stars">${averageRatingDisplay.stars}</span>
+                        <span class="detail_average_score">${averageRatingDisplay.score}</span>
+                        <span class="detail_average_count">${activeAverageRatingCount} rating${activeAverageRatingCount === 1 ? "" : "s"}</span>
+                    </div>
+                `
+                : `
+                    <div class="detail_average_rating">
+                        <span class="detail_average_label">Community average</span>
+                        <span class="detail_average_empty">No ratings yet</span>
+                    </div>
+                `;
 
         let reviewsMarkup = `<p class="detail_empty_reviews">No reviews have been posted for this ${itemType} yet.</p>`;
         if (relatedReviewsLoading) {
@@ -116,6 +148,7 @@ function initSearchPage() {
                 <div class="detail_copy_column">
                     <p class="detail_meta">${itemTypeLabel}</p>
                     <h2 id="detail-title" class="detail_title">${activeSearchItem.title}</h2>
+                    ${averageRatingMarkup}
                     <p class="detail_description">Most liked community reviews for this ${itemType}.</p>
 
                     <section class="detail_reviews_section">
@@ -210,6 +243,8 @@ function initSearchPage() {
         };
         activeRelatedReviews = [];
         activeRelatedReviewCount = 0;
+        activeAverageRating = null;
+        activeAverageRatingCount = 0;
         relatedReviewsError = "";
         relatedReviewsLoading = true;
         openDetailModal();
@@ -226,6 +261,10 @@ function initSearchPage() {
             const reviews = Array.isArray(payload?.data) ? payload.data : [];
             activeRelatedReviews = reviews.map(normalizeFeedReview);
             activeRelatedReviewCount = Number(payload?.total ?? activeRelatedReviews.length);
+            activeAverageRating = Number.isFinite(Number(payload?.average_rating))
+                ? Number(payload.average_rating)
+                : null;
+            activeAverageRatingCount = Number(payload?.rated_total ?? activeRelatedReviewCount);
         } catch (err) {
             if (requestId !== activeReviewRequestId) {
                 return;
