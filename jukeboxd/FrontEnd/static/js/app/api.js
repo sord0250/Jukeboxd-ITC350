@@ -64,10 +64,11 @@ async function fetchFeedReviews() {
     return await response.json();
 }
 
-async function fetchUserReviews() {
+async function fetchUserReviews(requestedUsername = "") {
+    const normalizedUsername = String(requestedUsername || "").trim();
     const profileUsername = document.body.dataset.username;
     const storedUsername = getCurrentUsername();
-    const username = profileUsername || storedUsername;
+    const username = normalizedUsername || profileUsername || storedUsername;
     const url = username
         ? `/api/user_reviews?username=${encodeURIComponent(username)}`
         : "/api/user_reviews";
@@ -75,15 +76,23 @@ async function fetchUserReviews() {
     return await response.json();
 }
 
-async function fetchCurrentProfile() {
-    const response = await fetch("/api/profile");
+async function fetchProfile(requestedUsername = "") {
+    const normalizedUsername = String(requestedUsername || "").trim();
+    const url = normalizedUsername
+        ? `/api/profile?username=${encodeURIComponent(normalizedUsername)}`
+        : "/api/profile";
+    const response = await fetch(url);
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || !data.success) {
-        throw new Error(data.message || "Could not load your profile.");
+        throw new Error(data.message || (normalizedUsername ? "Could not load that profile." : "Could not load your profile."));
     }
 
     return data.data || {};
+}
+
+async function fetchCurrentProfile() {
+    return await fetchProfile();
 }
 
 async function updateCurrentProfile(profileData) {

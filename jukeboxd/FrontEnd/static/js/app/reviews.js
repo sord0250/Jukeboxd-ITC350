@@ -478,6 +478,21 @@ function normalizeFeedReview(entry) {
     };
 }
 
+function createProfileHref(username) {
+    const normalizedUsername = String(username || "").trim();
+    const currentUsername = String(getCurrentUsername() || "").trim();
+
+    if (!normalizedUsername) {
+        return "";
+    }
+
+    if (normalizedUsername === currentUsername) {
+        return "/profile";
+    }
+
+    return `/profile/${encodeURIComponent(normalizedUsername)}`;
+}
+
 function getReviewArtwork(entry) {
     const fallbackArtwork = entry?.review_type === "artist"
         ? "/static/img/jb_record.png"
@@ -622,6 +637,8 @@ function createFeedCard(entry, index = 0) {
         ? String(entry.artist_names || "").trim()
         : "";
     const reviewTitle = String(entry.title || "Review");
+    const reviewUsername = String(entry.username || "").trim();
+    const profileHref = createProfileHref(reviewUsername);
     const isCommentsModalOpen = isReviewCommentsModalOpenFor(entry.review_id);
     const commentButtonAriaLabel = commentCount > 0
         ? `Open comments. ${commentCount} comment${commentCount === 1 ? "" : "s"} on this review.`
@@ -638,7 +655,9 @@ function createFeedCard(entry, index = 0) {
                     <div class="detail_review_head">
                         <div class="detail_review_identity">
                             <img class="detail_review_avatar" src="/static/img/jb_profile_pic.png" alt="user">
-                            <span class="detail_review_username">${entry.username || "user"}</span>
+                            ${profileHref
+                                ? `<a class="detail_review_username" href="${escapeHtml(profileHref)}">${escapeHtml(reviewUsername)}</a>`
+                                : `<span class="detail_review_username">${escapeHtml(reviewUsername || "user")}</span>`}
                         </div>
                         <div class="detail_review_rating_block">
                             <span class="detail_review_rating_stars">${ratingDisplay.stars}</span>

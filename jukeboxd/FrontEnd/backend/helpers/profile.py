@@ -15,6 +15,30 @@ def _serialize_profile_user(user):
     }
 
 
+def _get_user_by_username(username):
+    normalized_username = str(username or "").strip()
+    if not normalized_username:
+        return None
+
+    response = requests.get(
+        f"{DIRECTUS_URL}/items/USER",
+        params={
+            "filter[U_Username][_eq]": normalized_username,
+            "limit": 1
+        }
+    )
+    payload = response.json()
+
+    if response.status_code != 200:
+        raise RuntimeError(_extract_api_error(payload, "Could not load that profile right now."))
+
+    users = payload.get("data", [])
+    if not users:
+        return None
+
+    return users[0]
+
+
 def _profile_update_error_message(payload, default_message):
     error_message = _extract_api_error(payload, default_message)
     lowered_message = error_message.lower()

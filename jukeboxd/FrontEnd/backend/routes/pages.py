@@ -20,7 +20,24 @@ def register_page_routes(app):
         return render_template(
             "profile.html",
             user_id=session["user_id"],
-            username=session["username"]
+            username=session["username"],
+            is_own_profile=True
+        )
+
+    @app.route("/profile/<username>")
+    def profile_by_username(username):
+        if "user_id" not in session:
+            return redirect("/login")
+
+        normalized_username = str(username or "").strip()
+        if not normalized_username:
+            return redirect("/profile")
+
+        return render_template(
+            "profile.html",
+            user_id=session["user_id"],
+            username=normalized_username,
+            is_own_profile=normalized_username == str(session.get("username") or "").strip()
         )
 
     @app.route("/add")

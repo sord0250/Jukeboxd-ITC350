@@ -4,7 +4,7 @@ from flask import jsonify, request, session
 from backend.config import DIRECTUS_URL
 from backend.helpers.common import _extract_api_error
 from backend.helpers.profile import (
-    _is_user_field_taken,
+    _get_user_by_username,
     _profile_update_error_message,
     _serialize_profile_user,
 )
@@ -15,6 +15,29 @@ def register_profile_routes(app):
     def api_profile():
         if "user_id" not in session:
             return jsonify({"success": False, "message": "Please log in again."}), 401
+
+        requested_username = (request.args.get("username") or "").strip()
+        current_username = str(session.get("username") or "").strip()
+
+        if request.method == "GET" and requested_username and requested_username != current_username:
+            try:
+                requested_user = _get_user_by_username(requested_username)
+            except RuntimeError as error:
+                return jsonify({
+                    "success": False,
+                    "message": str(error)
+                }), 502
+
+            if not requested_user:
+                return jsonify({
+                    "success": False,
+                    "message": "We could not find that user."
+                }), 404
+
+            return jsonify({
+                "success": True,
+                "data": _serialize_profile_user(requested_user)
+            })
 
         user_id = session["user_id"]
         user_response = requests.get(f"{DIRECTUS_URL}/items/USER/{user_id}")
@@ -38,16 +61,14 @@ def register_profile_routes(app):
         first_name = (data.get("firstName") or "").strip()
         last_name = (data.get("lastName") or "").strip()
         username = (data.get("username") or "").strip()
-        email = (data.get("email") or "").strip()
+        requested_email = (data.get("email") or "").strip()
+        current_email = str(current_user.get("U_Email") or "").strip()
 
-        if not first_name or not last_name or not username or not email:
-            return jsonify({"success": False, "message": "All profile fields are required."}), 400
+        if not first_name or not last_name or not username:
+            return jsonify({"success": False, "message": "First name, last name, and username are required."}), 400
 
         if len(username) < 5 or len(username) > 12:
             return jsonify({"success": False, "message": "Username must be 5-12 characters."}), 400
-
-        if "@" not in email:
-            return jsonify({"success": False, "message": "Please enter a valid email address."}), 400
 
         current_username = str(current_user.get("U_Username") or "").strip()
         if username != current_username:
@@ -56,13 +77,15 @@ def register_profile_routes(app):
                 "message": "Username changes are not supported yet."
             }), 400
 
-        if _is_user_field_taken("U_Email", email, user_id):
-            return jsonify({"success": False, "message": "That email is already in use."}), 409
+        if requested_email and requested_email != current_email:
+            return jsonify({
+                "success": False,
+                "message": "Email changes are not supported yet."
+            }), 400
 
         update_payload = {
             "U_FName": first_name,
-            "U_LName": last_name,
-            "U_Email": email
+            "U_LName": last_name
         }
 
         update_response = requests.patch(

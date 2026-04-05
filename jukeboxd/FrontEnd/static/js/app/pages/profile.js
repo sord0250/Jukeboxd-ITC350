@@ -1,6 +1,7 @@
 async function initProfilePage() {
     const profileReviewList = document.getElementById("profile-review-list");
     const reviewCount = document.getElementById("profile-reviews");
+    const profileReviewsSubtitle = document.getElementById("profile-reviews-subtitle");
     const editProfileButton = document.getElementById("edit-profile-button");
     const editProfileModal = document.getElementById("edit-profile-modal");
     const editProfileForm = document.getElementById("edit-profile-form");
@@ -12,12 +13,44 @@ async function initProfilePage() {
     const lastNameInput = document.getElementById("edit-profile-last-name");
     const usernameInput = document.getElementById("edit-profile-username");
     const emailInput = document.getElementById("edit-profile-email");
+    const isOwnProfile = document.body.dataset.isOwnProfile === "true";
+    const initialProfileUsername = String(document.body.dataset.username || "").trim();
     if (!profileReviewList) return;
 
     if (!requireLogin()) return;
 
     let profileReviews = [];
     let currentProfile = null;
+
+    function getViewedUsername() {
+        return String(document.body.dataset.username || initialProfileUsername || "").trim();
+    }
+
+    function formatPossessiveHandle(username) {
+        const normalizedUsername = String(username || "").trim();
+
+        if (!normalizedUsername) {
+            return "this user's";
+        }
+
+        return normalizedUsername.endsWith("s")
+            ? `@${normalizedUsername}'`
+            : `@${normalizedUsername}'s`;
+    }
+
+    function updateProfileReviewsSubtitle(user = null) {
+        if (!profileReviewsSubtitle) {
+            return;
+        }
+
+        if (isOwnProfile) {
+            profileReviewsSubtitle.textContent = "A full feed-style view of your most recent reviews.";
+            return;
+        }
+
+        const username = String(user?.U_Username || getViewedUsername()).trim();
+        profileReviewsSubtitle.textContent = `A full feed-style view of ${formatPossessiveHandle(username)} most recent reviews.`;
+    }
 
     function setEditProfileMessage(text = "", isError = false) {
         if (!editProfileMessage) {
@@ -37,13 +70,44 @@ async function initProfilePage() {
             profileReviewList.innerHTML = `
                 <article class="detail_review_card">
                     <h3 class="detail_review_title">No reviews yet</h3>
-                    <p class="detail_review_snippet">This user has not posted any reviews yet.</p>
+                    <p class="detail_review_snippet">${isOwnProfile ? "You have not posted any reviews yet." : "This user has not posted any reviews yet."}</p>
                 </article>
             `;
             return;
         }
 
         profileReviewList.innerHTML = profileReviews.map(createFeedCard).join("");
+    }
+
+    function renderProfileLoadError(message) {
+        const profileName = document.getElementById("profile-name");
+        const profileHandle = document.getElementById("profile-handle");
+        const profileMember = document.getElementById("profile-member");
+        const viewedUsername = getViewedUsername();
+
+        if (profileName) {
+            profileName.textContent = viewedUsername || "Profile unavailable";
+        }
+
+        if (profileHandle) {
+            profileHandle.textContent = viewedUsername ? `@${viewedUsername}` : "";
+        }
+
+        if (profileMember) {
+            profileMember.textContent = "Unknown";
+        }
+
+        if (reviewCount) {
+            reviewCount.textContent = "0";
+        }
+
+        updateProfileReviewsSubtitle({ U_Username: viewedUsername });
+        profileReviewList.innerHTML = `
+            <article class="detail_review_card">
+                <h3 class="detail_review_title">Profile unavailable</h3>
+                <p class="detail_review_snippet">${escapeHtml(message || "Could not load this profile right now.")}</p>
+            </article>
+        `;
     }
 
     function openEditProfileModal() {
@@ -78,7 +142,7 @@ async function initProfilePage() {
     }
 
     async function refreshProfileReviews() {
-        const payload = await fetchUserReviews();
+        const payload = await fetchUserReviews(getViewedUsername());
         const reviews = payload.data || payload;
         profileReviews = reviews.map(normalizeFeedReview);
         renderProfileReviews();
@@ -135,22 +199,16 @@ async function initProfilePage() {
             const profileData = {
                 firstName: firstNameInput.value.trim(),
                 lastName: lastNameInput.value.trim(),
-                username: usernameInput.value.trim(),
-                email: emailInput.value.trim()
+                username: usernameInput.value.trim()
             };
 
-            if (!profileData.firstName || !profileData.lastName || !profileData.username || !profileData.email) {
-                setEditProfileMessage("All profile fields are required.", true);
+            if (!profileData.firstName || !profileData.lastName || !profileData.username) {
+                setEditProfileMessage("First name, last name, and username are required.", true);
                 return;
             }
 
             if (profileData.username.length < 5 || profileData.username.length > 12) {
                 setEditProfileMessage("Username must be 5-12 characters.", true);
-                return;
-            }
-
-            if (!profileData.email.includes("@")) {
-                setEditProfileMessage("Please enter a valid email address.", true);
                 return;
             }
 
@@ -161,10 +219,12 @@ async function initProfilePage() {
                 const updatedProfile = await updateCurrentProfile(profileData);
                 currentProfile = updatedProfile;
                 renderProfileSummary(updatedProfile);
+                updateProfileReviewsSubtitle(updatedProfile);
 
-                document.body.dataset.username = updatedProfile.U_Username || "";
-                localStorage.setItem("username", updatedProfile.U_Username || "");
-                localStorage.setItem("user_email", updatedProfile.U_Email || "");
+                document.body.dataset.username = updatedProfile.U_Username || getViewedUsername();
+                if (isOwnProfile) {
+                    localStorage.setItem("username", updatedProfile.U_Username || "");
+                }
 
                 closeEditProfileModal();
                 try {
@@ -180,20 +240,26 @@ async function initProfilePage() {
         });
     }
 
+    updateProfileReviewsSubtitle();
+
     try {
         const [profile, reviewPayload] = await Promise.all([
-            fetchCurrentProfile(),
-            fetchUserReviews()
+            fetchProfile(getViewedUsername()),
+            fetchUserReviews(getViewedUsername())
         ]);
         currentProfile = profile;
-        document.body.dataset.username = profile.U_Username || "";
-        localStorage.setItem("username", profile.U_Username || "");
-        localStorage.setItem("user_email", profile.U_Email || "");
+        document.body.dataset.username = profile.U_Username || getViewedUsername();
+        if (isOwnProfile) {
+            localStorage.setItem("username", profile.U_Username || "");
+            localStorage.setItem("user_email", profile.U_Email || "");
+        }
         renderProfileSummary(profile);
+        updateProfileReviewsSubtitle(profile);
         const reviews = reviewPayload.data || reviewPayload;
         profileReviews = reviews.map(normalizeFeedReview);
         renderProfileReviews();
     } catch (err) {
         console.error("Profile load error:", err);
+        renderProfileLoadError(err.message || "Could not load this profile right now.");
     }
 }
