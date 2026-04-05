@@ -112,6 +112,68 @@ async function updateCurrentProfile(profileData) {
     return data.data || {};
 }
 
+async function fetchFriendshipData(requestedUsername = "") {
+    const normalizedUsername = String(requestedUsername || "").trim();
+    const url = normalizedUsername
+        ? `/api/friendships?username=${encodeURIComponent(normalizedUsername)}`
+        : "/api/friendships";
+    const response = await fetch(url);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not load friendship data.");
+    }
+
+    return data.data || {};
+}
+
+async function createFriendRequest(username) {
+    const response = await fetch("/api/friendships", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not send that friend request.");
+    }
+
+    return data;
+}
+
+async function updateFriendship(friendshipId, action) {
+    const response = await fetch(`/api/friendships/${encodeURIComponent(friendshipId)}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ action })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not update that friendship.");
+    }
+
+    return data;
+}
+
+async function deleteFriendship(friendshipId) {
+    const response = await fetch(`/api/friendships/${encodeURIComponent(friendshipId)}`, {
+        method: "DELETE"
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not update that friendship.");
+    }
+
+    return data;
+}
+
 async function setReviewLike(reviewId, shouldLike) {
     const response = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/like`, {
         method: shouldLike ? "POST" : "DELETE"

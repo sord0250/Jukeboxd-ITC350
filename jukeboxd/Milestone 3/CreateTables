@@ -17,6 +17,28 @@ CREATE TABLE USER
   UNIQUE (U_Email)
 );
 
+CREATE TABLE FRIENDSHIP
+(
+  F_ID INT AUTO_INCREMENT NOT NULL,
+  U_ID_1 INT NOT NULL,
+  U_ID_2 INT NOT NULL,
+  F_RequestedBy INT NOT NULL,
+  F_Status ENUM('pending', 'accepted', 'blocked') NOT NULL DEFAULT 'pending',
+  F_DateCreated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  F_DateAccepted DATETIME NULL,
+  PRIMARY KEY (F_ID),
+  UNIQUE KEY uq_friendship_pair (U_ID_1, U_ID_2),
+  KEY idx_friendship_user_1_status (U_ID_1, F_Status),
+  KEY idx_friendship_user_2_status (U_ID_2, F_Status),
+  KEY idx_friendship_requested_by_status (F_RequestedBy, F_Status),
+  FOREIGN KEY (U_ID_1) REFERENCES USER(U_ID)
+    ON DELETE CASCADE,
+  FOREIGN KEY (U_ID_2) REFERENCES USER(U_ID)
+    ON DELETE CASCADE,
+  FOREIGN KEY (F_RequestedBy) REFERENCES USER(U_ID)
+    ON DELETE CASCADE
+);
+
 CREATE TABLE ALBUM
 (
   AL_Name VARCHAR(255) NOT NULL,
