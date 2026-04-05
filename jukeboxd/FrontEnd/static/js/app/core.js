@@ -1,5 +1,3 @@
-const DIRECTUS_URL = "http://64.23.156.15:8055";
-
 function getCurrentUserId() {
     return localStorage.getItem("user_id");
 }

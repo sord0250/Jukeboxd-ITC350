@@ -15,6 +15,10 @@ from backend.helpers.common import (
     _filter_user_reviews,
     _normalize_search_item_type,
 )
+from backend.helpers.input_sanitization import (
+    _build_sanitized_review_payload,
+    _sanitize_comment_text,
+)
 from backend.helpers.payloads import (
     _fetch_review_reference_payloads,
     _fetch_review_view_payloads,
@@ -89,16 +93,10 @@ def register_review_routes(app):
             }), review_response.status_code
 
         data = request.get_json(silent=True) or {}
-        comment_text = (data.get("commentText") or "").strip()
-
-        if not comment_text:
-            return jsonify({"success": False, "message": "Please write a comment."}), 400
-
-        if len(comment_text) > COMMENT_TEXT_LIMIT:
-            return jsonify({
-                "success": False,
-                "message": f"Comments must be {COMMENT_TEXT_LIMIT} characters or fewer."
-            }), 400
+        try:
+            comment_text = _sanitize_comment_text(data.get("commentText"))
+        except ValueError as error:
+            return jsonify({"success": False, "message": str(error)}), 400
 
         try:
             comment = _add_review_comment(
@@ -305,15 +303,37 @@ def register_review_routes(app):
 
     @app.route("/api/add_review", methods=["POST"])
     def add_review():
-        if "username" not in session:
-            return jsonify({"status": "not logged in"}), 401
+        if "username" not in session or "user_id" not in session:
+            return jsonify({"success": False, "message": "Please log in again."}), 401
 
-        data = request.json
-        data["U_Username"] = session["username"]
-        data.setdefault("R_NumOfLikes", 0)
+        data = request.get_json(silent=True) or {}
 
-        response = requests.post(f"{DIRECTUS_URL}/items/REVIEW", json=data)
-        return jsonify(response.json())
+        try:
+            sanitized_review_payload = _build_sanitized_review_payload(
+                data,
+                session.get("username"),
+                session.get("user_id")
+            )
+        except ValueError as error:
+            return jsonify({"success": False, "message": str(error)}), 400
+
+        response = requests.post(
+            f"{DIRECTUS_URL}/items/REVIEW",
+            json=sanitized_review_payload
+        )
+        result = response.json()
+
+        if response.status_code not in (200, 201):
+            return jsonify({
+                "success": False,
+                "message": _extract_api_error(result, "Could not submit review right now.")
+            }), response.status_code
+
+        return jsonify({
+            "success": True,
+            "message": "Review submitted.",
+            "data": result.get("data")
+        }), response.status_code
 
     @app.route("/api/user_reviews/<username>")
     def get_user_reviews(username):

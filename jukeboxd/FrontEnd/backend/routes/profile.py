@@ -3,6 +3,11 @@ from flask import jsonify, request, session
 
 from backend.config import DIRECTUS_URL
 from backend.helpers.common import _extract_api_error
+from backend.helpers.input_sanitization import (
+    _sanitize_email,
+    _sanitize_name,
+    _sanitize_username,
+)
 from backend.helpers.profile import (
     _get_user_by_username,
     _profile_update_error_message,
@@ -20,6 +25,14 @@ def register_profile_routes(app):
         current_username = str(session.get("username") or "").strip()
 
         if request.method == "GET" and requested_username and requested_username != current_username:
+            try:
+                requested_username = _sanitize_username(requested_username)
+            except ValueError as error:
+                return jsonify({
+                    "success": False,
+                    "message": str(error)
+                }), 400
+
             try:
                 requested_user = _get_user_by_username(requested_username)
             except RuntimeError as error:
@@ -58,17 +71,18 @@ def register_profile_routes(app):
             })
 
         data = request.get_json(silent=True) or {}
-        first_name = (data.get("firstName") or "").strip()
-        last_name = (data.get("lastName") or "").strip()
-        username = (data.get("username") or "").strip()
-        requested_email = (data.get("email") or "").strip()
         current_email = str(current_user.get("U_Email") or "").strip()
-
-        if not first_name or not last_name or not username:
-            return jsonify({"success": False, "message": "First name, last name, and username are required."}), 400
-
-        if len(username) < 5 or len(username) > 12:
-            return jsonify({"success": False, "message": "Username must be 5-12 characters."}), 400
+        try:
+            first_name = _sanitize_name(data.get("firstName"), "First name")
+            last_name = _sanitize_name(data.get("lastName"), "Last name")
+            username = _sanitize_username(data.get("username"))
+            requested_email = (
+                _sanitize_email(data.get("email"))
+                if (data.get("email") or "").strip()
+                else ""
+            )
+        except ValueError as error:
+            return jsonify({"success": False, "message": str(error)}), 400
 
         current_username = str(current_user.get("U_Username") or "").strip()
         if username != current_username:

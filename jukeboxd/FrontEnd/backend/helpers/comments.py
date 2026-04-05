@@ -9,6 +9,7 @@ from backend.config import (
     DIRECTUS_URL,
 )
 from backend.helpers.common import _extract_api_error, _extract_payload_list
+from backend.helpers.input_sanitization import _sanitize_comment_text, _sanitize_username
 
 
 def _safe_json(response):
@@ -106,15 +107,9 @@ def _get_review_comments(review_id, limit=None, raise_on_error=False):
 
 
 def _add_review_comment(review_id, username, _user_id, comment_text):
-    normalized_text = str(comment_text or "").strip()
-    if not normalized_text:
-        raise ValueError("Comment text is required.")
-
-    if len(normalized_text) > COMMENT_TEXT_LIMIT:
-        raise ValueError(f"Comments must be {COMMENT_TEXT_LIMIT} characters or fewer.")
-
+    normalized_text = _sanitize_comment_text(comment_text)
     normalized_review_id = int(review_id)
-    normalized_username = str(username or "").strip() or "user"
+    normalized_username = _sanitize_username(username)
 
     payload = {
         "R_ID": normalized_review_id,

@@ -64,6 +64,23 @@ async function fetchFeedReviews() {
     return await response.json();
 }
 
+async function createReview(reviewData) {
+    const response = await fetch("/api/add_review", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(reviewData)
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not submit review.");
+    }
+
+    return data;
+}
+
 async function fetchUserReviews(requestedUsername = "") {
     const normalizedUsername = String(requestedUsername || "").trim();
     const profileUsername = document.body.dataset.username;

@@ -6,6 +6,12 @@ from flask import jsonify, redirect, request, session
 
 from backend.config import DIRECTUS_URL
 from backend.helpers.common import _extract_api_error
+from backend.helpers.input_sanitization import (
+    _sanitize_email,
+    _sanitize_name,
+    _sanitize_password,
+    _sanitize_username,
+)
 
 
 def register_auth_routes(app):
@@ -18,23 +24,14 @@ def register_auth_routes(app):
     def api_register():
         data = request.get_json(silent=True) or {}
 
-        first_name = (data.get("firstName") or "").strip()
-        last_name = (data.get("lastName") or "").strip()
-        username = (data.get("username") or "").strip()
-        email = (data.get("email") or "").strip()
-        password = data.get("password") or ""
-
-        if not first_name or not last_name or not username or not email or not password:
-            return jsonify({"success": False, "message": "All fields are required."}), 400
-
-        if len(username) < 5:
-            return jsonify({"success": False, "message": "Username must be at least 5 characters."}), 400
-
-        if len(username) > 12:
-            return jsonify({"success": False, "message": "Username must be 12 characters or fewer."}), 400
-
-        if "@" not in email:
-            return jsonify({"success": False, "message": "Please enter a valid email address."}), 400
+        try:
+            first_name = _sanitize_name(data.get("firstName"), "First name")
+            last_name = _sanitize_name(data.get("lastName"), "Last name")
+            username = _sanitize_username(data.get("username"))
+            email = _sanitize_email(data.get("email"))
+            password = _sanitize_password(data.get("password"))
+        except ValueError as error:
+            return jsonify({"success": False, "message": str(error)}), 400
 
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -77,11 +74,12 @@ def register_auth_routes(app):
 
     @app.route("/api/login", methods=["POST"])
     def api_login():
-        data = request.json
-        email = data.get("email")
-        password = data.get("password")
+        data = request.get_json(silent=True) or {}
 
-        if not email or not password:
+        try:
+            email = _sanitize_email(data.get("email"))
+            password = _sanitize_password(data.get("password"))
+        except ValueError:
             return jsonify({"success": False})
 
         response = requests.get(

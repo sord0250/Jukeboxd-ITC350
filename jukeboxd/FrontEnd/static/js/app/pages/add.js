@@ -160,11 +160,7 @@ function initAddPage() {
 
         const reviewData = {
             R_Text: reviewText.value.trim(),
-            R_Rating: Number(ratingInput.value),
-            R_NumOfLikes: 0,
-            U_ID: Number(userId),
-            U_Username: username,
-            R_TimeCreated: new Date().toISOString()
+            R_Rating: Number(ratingInput.value)
         };
 
         if (selectedItem.type === "song") {
@@ -180,35 +176,21 @@ function initAddPage() {
         console.log("Posting review:", reviewData);
 
         try {
-            const response = await fetch(DIRECTUS_URL + "/items/REVIEW", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(reviewData)
-            });
+            await createReview(reviewData);
 
-            const data = await response.json();
-            console.log("Response:", data);
-
-            if (response.ok) {
-                message.textContent = "Review submitted!";
-                form.reset();
-                selectedItem = null;
-                updateSelectedLabel();
-                updateReviewCharCount();
-                ratingStatus.textContent = "No rating selected yet";
-                ratingButtons.forEach((button) => button.classList.remove("is_active"));
-                resultsContainer.innerHTML = "";
-                count.textContent = "Start typing to search";
-                showReviewToast("Review created successfully");
-            } else {
-                message.textContent = data?.errors?.[0]?.message || "Could not submit review.";
-                showReviewToast("Review creation failed", true);
-            }
+            message.textContent = "Review submitted!";
+            form.reset();
+            selectedItem = null;
+            updateSelectedLabel();
+            updateReviewCharCount();
+            ratingStatus.textContent = "No rating selected yet";
+            ratingButtons.forEach((button) => button.classList.remove("is_active"));
+            resultsContainer.innerHTML = "";
+            count.textContent = "Start typing to search";
+            showReviewToast("Review created successfully");
         } catch (err) {
             console.error(err);
-            message.textContent = "Server error. See console.";
+            message.textContent = err.message || "Could not submit review.";
             showReviewToast("Review creation failed", true);
         }
     });
