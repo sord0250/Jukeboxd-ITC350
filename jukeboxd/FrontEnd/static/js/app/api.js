@@ -72,10 +72,20 @@ async function createReview(reviewData) {
         },
         body: JSON.stringify(reviewData)
     });
-    const data = await response.json().catch(() => ({}));
+    const rawText = await response.text();
+    let data = {};
+
+    try {
+        data = rawText ? JSON.parse(rawText) : {};
+    } catch (err) {
+        data = {};
+    }
 
     if (!response.ok || !data.success) {
-        throw new Error(data.message || "Could not submit review.");
+        const fallbackMessage = rawText
+            ? `Review submit failed (${response.status}): ${rawText.slice(0, 200)}`
+            : `Review submit failed (${response.status}).`;
+        throw new Error(data.message || fallbackMessage);
     }
 
     return data;

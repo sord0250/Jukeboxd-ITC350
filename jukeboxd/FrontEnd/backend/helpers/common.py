@@ -45,13 +45,42 @@ def _extract_api_error(payload, default_message):
         if isinstance(message, str) and message.strip():
             return message.strip()
 
+        detail = payload.get("detail")
+        if isinstance(detail, str) and detail.strip():
+            return detail.strip()
+
+        error = payload.get("error")
+        if isinstance(error, str) and error.strip():
+            return error.strip()
+        if isinstance(error, dict):
+            error_message = error.get("message") or error.get("detail")
+            if isinstance(error_message, str) and error_message.strip():
+                return error_message.strip()
+
         errors = payload.get("errors")
         if isinstance(errors, list) and errors:
             first_error = errors[0]
+            if isinstance(first_error, str) and first_error.strip():
+                return first_error.strip()
             if isinstance(first_error, dict):
                 error_message = first_error.get("message")
                 if isinstance(error_message, str) and error_message.strip():
                     return error_message.strip()
+
+                error_detail = first_error.get("detail")
+                if isinstance(error_detail, str) and error_detail.strip():
+                    return error_detail.strip()
+
+                extensions = first_error.get("extensions")
+                if isinstance(extensions, dict):
+                    extension_message = extensions.get("message") or extensions.get("detail") or extensions.get("reason")
+                    if isinstance(extension_message, str) and extension_message.strip():
+                        return extension_message.strip()
+
+                    field_name = extensions.get("field")
+                    code = extensions.get("code")
+                    if isinstance(field_name, str) and field_name.strip() and isinstance(code, str) and code.strip():
+                        return f"{field_name.strip()}: {code.strip()}"
 
     return default_message
 

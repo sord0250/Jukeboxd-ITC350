@@ -67,6 +67,9 @@ def _safe_json_payload(response):
     try:
         return response.json()
     except ValueError:
+        raw_text = str(response.text or "").strip()
+        if raw_text and not raw_text.lstrip().startswith("<"):
+            return {"message": raw_text[:500]}
         return {}
 
 
@@ -310,12 +313,11 @@ def register_review_routes(app):
 
     @app.route("/api/add_review", methods=["POST"])
     def add_review():
-        if "username" not in session or "user_id" not in session:
-            return jsonify({"success": False, "message": "Please log in again."}), 401
-
-        data = request.get_json(silent=True) or {}
-
         try:
+            if "username" not in session or "user_id" not in session:
+                return jsonify({"success": False, "message": "Please log in again."}), 401
+
+            data = request.get_json(silent=True) or {}
             sanitized_review_payload = _build_sanitized_review_payload(
                 data,
                 session.get("username"),
@@ -324,30 +326,46 @@ def register_review_routes(app):
         except ValueError as error:
             return jsonify({"success": False, "message": str(error)}), 400
 
-        response = requests.post(
-            f"{DIRECTUS_URL}/items/REVIEW",
-            json=sanitized_review_payload
+        current_app.logger.info(
+            "Submitting sanitized review payload for user=%s payload=%s",
+            session.get("username"),
+            sanitized_review_payload
         )
-        result = _safe_json_payload(response)
 
-        if response.status_code not in (200, 201):
-            current_app.logger.warning(
-                "Review create failed with status %s. Payload=%s Response=%s Raw=%s",
-                response.status_code,
-                sanitized_review_payload,
-                result,
-                response.text[:500]
+        try:
+            response = requests.post(
+                f"{DIRECTUS_URL}/items/REVIEW",
+                json=sanitized_review_payload
+            )
+            result = _safe_json_payload(response)
+
+            if response.status_code not in (200, 201):
+                current_app.logger.warning(
+                    "Review create failed with status %s. Payload=%s Response=%s Raw=%s",
+                    response.status_code,
+                    sanitized_review_payload,
+                    result,
+                    response.text[:500]
+                )
+                return jsonify({
+                    "success": False,
+                    "message": _extract_api_error(result, "Could not submit review right now.")
+                }), response.status_code
+
+            return jsonify({
+                "success": True,
+                "message": "Review submitted.",
+                "data": result.get("data")
+            }), response.status_code
+        except Exception as error:
+            current_app.logger.exception(
+                "Unhandled add_review error for payload=%s",
+                sanitized_review_payload
             )
             return jsonify({
                 "success": False,
-                "message": _extract_api_error(result, "Could not submit review right now.")
-            }), response.status_code
-
-        return jsonify({
-            "success": True,
-            "message": "Review submitted.",
-            "data": result.get("data")
-        }), response.status_code
+                "message": f"Server error while submitting review: {error}"
+            }), 500
 
     @app.route("/api/user_reviews/<username>")
     def get_user_reviews(username):
