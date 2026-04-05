@@ -1,5 +1,5 @@
 import requests
-from flask import jsonify, request, session
+from flask import current_app, jsonify, request, session
 
 from backend.config import COMMENT_TEXT_LIMIT, DIRECTUS_URL
 from backend.helpers.comments import (
@@ -61,6 +61,13 @@ def _get_normalized_profile_reviews(filtered_user_reviews):
         album_review_payload,
         artist_review_payload
     )
+
+
+def _safe_json_payload(response):
+    try:
+        return response.json()
+    except ValueError:
+        return {}
 
 
 def register_review_routes(app):
@@ -321,9 +328,16 @@ def register_review_routes(app):
             f"{DIRECTUS_URL}/items/REVIEW",
             json=sanitized_review_payload
         )
-        result = response.json()
+        result = _safe_json_payload(response)
 
         if response.status_code not in (200, 201):
+            current_app.logger.warning(
+                "Review create failed with status %s. Payload=%s Response=%s Raw=%s",
+                response.status_code,
+                sanitized_review_payload,
+                result,
+                response.text[:500]
+            )
             return jsonify({
                 "success": False,
                 "message": _extract_api_error(result, "Could not submit review right now.")
