@@ -283,7 +283,7 @@ function formatFeedRatingDisplay(value) {
         return { stars: "", score: "" };
     }
 
-    const starCount = Math.max(1, Math.min(5, Math.round(numericRating / 2)));
+    const starCount = Math.max(0, Math.min(5, Math.round(numericRating)));
     return {
         stars: `${"★".repeat(starCount)}${"☆".repeat(5 - starCount)}`,
         score: `${starCount}/5`
@@ -298,7 +298,7 @@ function createFeedCard(entry, index = 0) {
     const isAlbumReview = reviewType === "album";
     const ratingDisplay = formatFeedRatingDisplay(entry.review_rating);
     const supportingLine = (reviewType === "song" || reviewType === "album")
-        ? (entry.artist_names || "No Artist Found")
+        ? String(entry.artist_names || "").trim()
         : "";
 
     return `

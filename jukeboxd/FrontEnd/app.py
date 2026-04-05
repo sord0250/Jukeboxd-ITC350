@@ -107,11 +107,12 @@ def _resolve_media_url(value):
     return media_url
 
 
-def _build_artist_name_maps(song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
+def _build_artist_name_maps(song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload, review_payload=None):
     song_rows, _ = _extract_payload_list(song_payload)
     artist_rows, _ = _extract_payload_list(artist_payload)
     makes_song_rows, _ = _extract_payload_list(makes_song_payload)
     makes_album_rows, _ = _extract_payload_list(makes_album_payload)
+    review_rows, _ = _extract_payload_list(review_payload)
 
     artist_name_lookup = {}
     for artist in artist_rows:
@@ -153,6 +154,24 @@ def _build_artist_name_maps(song_payload, album_payload, artist_payload, makes_s
         if artist_name not in song_artist_names_map[str(song_id)]:
             song_artist_names_map[str(song_id)].append(artist_name)
 
+    for review in review_rows:
+        artist_id = review.get("ART_ID")
+        artist_name = artist_name_lookup.get(str(artist_id))
+        if not artist_name:
+            continue
+
+        album_id = review.get("AL_ID")
+        if album_id is not None:
+            album_artist_names_map.setdefault(str(album_id), [])
+            if artist_name not in album_artist_names_map[str(album_id)]:
+                album_artist_names_map[str(album_id)].append(artist_name)
+
+        song_id = review.get("S_ID")
+        if song_id is not None:
+            song_artist_names_map.setdefault(str(song_id), [])
+            if artist_name not in song_artist_names_map[str(song_id)]:
+                song_artist_names_map[str(song_id)].append(artist_name)
+
     for song_id, album_id in song_album_map.items():
         if song_artist_names_map.get(song_id):
             continue
@@ -176,6 +195,22 @@ def _build_artist_name_maps(song_payload, album_payload, artist_payload, makes_s
     )
 
 
+def _resolve_artist_names(song_id, album_id, artist_id, song_artist_names_map, album_artist_names_map, artist_map):
+    artist_names = None
+
+    if song_id is not None:
+        artist_names = song_artist_names_map.get(str(song_id))
+
+    if not artist_names and album_id is not None:
+        artist_names = album_artist_names_map.get(str(album_id))
+
+    if not artist_names and artist_id is not None:
+        matched_artist = artist_map.get(str(artist_id), {})
+        artist_names = matched_artist.get("ART_Name")
+
+    return artist_names
+
+
 def _build_review_enrichment(review_payload, song_payload, album_payload, artist_payload, makes_song_payload, makes_album_payload):
     review_rows, _ = _extract_payload_list(review_payload)
     song_rows, _ = _extract_payload_list(song_payload)
@@ -186,7 +221,8 @@ def _build_review_enrichment(review_payload, song_payload, album_payload, artist
         album_payload,
         artist_payload,
         makes_song_payload,
-        makes_album_payload
+        makes_album_payload,
+        review_payload
     )
     song_album_map = {}
     for song in song_rows:
@@ -229,7 +265,14 @@ def _build_review_enrichment(review_payload, song_payload, album_payload, artist
             "num_likes": _coerce_like_count(review.get("R_NumOfLikes")),
             "artwork_url": _resolve_media_url(album.get("AL_Image")) or _resolve_media_url(artist.get("ART_Image")),
             "artwork_alt": album.get("AL_Name") or artist.get("ART_Name"),
-            "artist_names": song_artist_names_map.get(str(song_id)) if song_id is not None else album_artist_names_map.get(str(album_id))
+            "artist_names": _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            )
         }
 
     return review_enrichment
@@ -375,7 +418,8 @@ def _normalize_user_feed_payload(user_payload, review_payload, song_payload, alb
         album_payload,
         artist_payload,
         makes_song_payload,
-        makes_album_payload
+        makes_album_payload,
+        review_payload
     )
 
     review_map = {}
@@ -437,14 +481,28 @@ def _normalize_user_feed_payload(user_payload, review_payload, song_payload, alb
             review_type = "song"
             title = matched_song.get("S_Name", title)
             album_name = matched_album.get("AL_Name")
-            artist_names = song_artist_names_map.get(str(song_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            )
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
         elif album_id is not None and matched_album:
             review_type = "album"
             title = matched_album.get("AL_Name", title)
             album_name = matched_album.get("AL_Name")
-            artist_names = album_artist_names_map.get(str(album_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            )
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name")
         elif artist_id is not None and matched_artist:
@@ -536,7 +594,8 @@ def _normalize_user_profile_reviews(
         album_payload,
         artist_payload,
         makes_song_payload,
-        makes_album_payload
+        makes_album_payload,
+        review_payload
     )
     review_map = {}
     for review in review_rows:
@@ -610,14 +669,28 @@ def _normalize_user_profile_reviews(
                 matched_album = album_map.get(str(fallback_album_id), {})
 
             album_name = matched_album.get("AL_Name") or fallback_song_review.get("AL_Name")
-            artist_names = song_artist_names_map.get(str(song_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            ) or fallback_artist_review.get("ART_Name")
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or fallback_song_review.get("S_Name")
         elif album_id is not None or fallback_album_review:
             review_type = "album"
             title = matched_album.get("AL_Name") or fallback_album_review.get("name") or title
             album_name = matched_album.get("AL_Name") or fallback_album_review.get("name")
-            artist_names = album_artist_names_map.get(str(album_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            ) or fallback_artist_review.get("ART_Name")
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or fallback_album_review.get("name")
         elif artist_id is not None or fallback_artist_review:
@@ -668,7 +741,8 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
         album_payload,
         artist_payload,
         makes_song_payload,
-        makes_album_payload
+        makes_album_payload,
+        review_payload
     )
     song_map = {}
     for song in song_rows:
@@ -721,7 +795,14 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
             title = matched_song.get("S_Name", title)
             genre = matched_song.get("S_Genre")
             album_name = matched_album.get("AL_Name")
-            artist_names = song_artist_names_map.get(str(song_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            )
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name") or matched_song.get("S_Name")
         elif album_id is not None and matched_album:
@@ -729,7 +810,14 @@ def _normalize_review_records(review_payload, song_payload, album_payload, artis
             title = matched_album.get("AL_Name", title)
             genre = matched_album.get("AL_Genre")
             album_name = matched_album.get("AL_Name")
-            artist_names = album_artist_names_map.get(str(album_id))
+            artist_names = _resolve_artist_names(
+                song_id,
+                album_id,
+                artist_id,
+                song_artist_names_map,
+                album_artist_names_map,
+                artist_map
+            )
             artwork_url = _resolve_media_url(matched_album.get("AL_Image"))
             artwork_alt = matched_album.get("AL_Name")
         elif artist_id is not None and matched_artist:
