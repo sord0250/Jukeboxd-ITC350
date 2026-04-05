@@ -1,0 +1,189 @@
+.profile_card_header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.profile_card_meta {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #8a7567;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.profile_friendship_status,
+.profile_friendship_message {
+    margin: 0;
+    color: #67574e;
+    line-height: 1.55;
+}
+
+.profile_friendship_message {
+    min-height: 1.4em;
+    font-size: 0.9rem;
+}
+
+.profile_friendship_message.is_error {
+    color: #8d4038;
+}
+
+.profile_connection_list {
+    display: grid;
+    gap: 12px;
+}
+
+.profile_connection_empty {
+    margin: 0;
+    color: #7b695f;
+    line-height: 1.55;
+}
+
+.profile_connection_item {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(88, 72, 62, 0.1);
+    border-radius: 18px;
+    background: rgba(255, 252, 247, 0.88);
+}
+
+.profile_connection_main {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.profile_connection_name {
+    color: #2f2622;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.profile_connection_name:hover,
+.profile_connection_name:focus-visible {
+    color: #8c453f;
+    text-decoration: underline;
+    outline: none;
+}
+
+.profile_connection_meta {
+    margin: 0;
+    color: #6f5f56;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.profile_connection_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.profile_connection_button {
+    border: none;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: #2f2622;
+    color: #fff8ef;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(48, 35, 22, 0.12);
+}
+
+.profile_connection_button_secondary {
+    border: 1px solid rgba(67, 54, 48, 0.14);
+    background: rgba(255, 252, 247, 0.92);
+    color: #2f2622;
+    box-shadow: none;
+}
+
+.profile_connection_button_danger {
+    background: #8a4038;
+    border-color: #8a4038;
+    color: #fff8ef;
+}
+
+.profile_connection_button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.modal_shell_friends {
+    width: min(760px, 100%);
+}
+
+.profile_friends_modal_body {
+    display: grid;
+    gap: 16px;
+    padding-top: 8px;
+}
+
+.profile_friend_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.profile_friend_button {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 72px;
+    padding: 14px 16px;
+    border: 1px solid rgba(88, 72, 62, 0.12);
+    border-radius: 22px;
+    background: rgba(255, 252, 247, 0.92);
+    color: #2f2622;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+
+.profile_friend_button:hover,
+.profile_friend_button:focus-visible {
+    border-color: rgba(140, 69, 63, 0.28);
+    box-shadow: 0 14px 24px rgba(48, 35, 22, 0.1);
+    background: rgba(255, 255, 255, 0.96);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.profile_friend_avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 8px 18px rgba(48, 35, 22, 0.12);
+}
+
+.profile_friend_username {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: inherit;
+}
+
+@media (max-width: 640px) {
+    .profile_card_header,
+    .profile_connection_actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile_connection_button {
+        width: 100%;
+    }
+
+    .profile_friend_grid {
+        grid-template-columns: 1fr;
+    }
+}

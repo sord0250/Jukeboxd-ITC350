@@ -4,9 +4,25 @@ async function initHomeFeed() {
     const backToTopButton = document.getElementById("feed-back-to-top");
     const filterButtons = Array.from(document.querySelectorAll(".feed_filter_button"));
     if (!feedList) return;
+    let friendUsernames = new Set();
+    let friendsFeedMessage = "";
 
     function normalizeFeedType(value) {
         return String(value || "").trim().toLowerCase();
+    }
+
+    function normalizeUsername(value) {
+        return String(value || "").trim().toLowerCase();
+    }
+
+    function getFriendFilteredReviews() {
+        if (!friendUsernames.size) {
+            return [];
+        }
+
+        return allFeedReviews.filter((entry) => (
+            friendUsernames.has(normalizeUsername(entry?.U_Username || entry?.username))
+        ));
     }
 
     function getFilteredReviews() {
@@ -14,7 +30,27 @@ async function initHomeFeed() {
             return allFeedReviews;
         }
 
+        if (activeFeedFilter === "friends") {
+            return getFriendFilteredReviews();
+        }
+
         return allFeedReviews.filter((entry) => normalizeFeedType(entry.review_type) === activeFeedFilter);
+    }
+
+    function getEmptyFeedMessage() {
+        if (activeFeedFilter === "friends") {
+            if (friendsFeedMessage) {
+                return friendsFeedMessage;
+            }
+
+            if (!friendUsernames.size) {
+                return "Add a few friends to start seeing their reviews here.";
+            }
+
+            return "There are no reviews from your friends to show right now.";
+        }
+
+        return `There are no ${activeFeedFilter === "all" ? "" : activeFeedFilter + " "}reviews to show right now.`;
     }
 
     function updateFilterButtons() {
@@ -67,7 +103,7 @@ async function initHomeFeed() {
             feedList.innerHTML = `
                 <article class="detail_review_card">
                     <h3 class="detail_review_title">No reviews yet</h3>
-                    <p class="detail_review_snippet">There are no ${activeFeedFilter === "all" ? "" : activeFeedFilter + " "}reviews to show right now.</p>
+                    <p class="detail_review_snippet">${escapeHtml(getEmptyFeedMessage())}</p>
                 </article>
             `;
             return;
@@ -137,9 +173,20 @@ async function initHomeFeed() {
     window.addEventListener("resize", updateBackToTopButton);
 
     try {
-        const payload = await fetchFeedReviews();
-        const reviews = Array.isArray(payload) ? payload : payload.data || [];
+        const [feedPayload, friendshipData] = await Promise.all([
+            fetchFeedReviews(),
+            fetchFriendshipData().catch((err) => {
+                friendsFeedMessage = err.message || "Could not load your friends right now.";
+                return null;
+            })
+        ]);
+        const reviews = Array.isArray(feedPayload) ? feedPayload : feedPayload.data || [];
         allFeedReviews = reviews.map(normalizeFeedReview);
+        friendUsernames = new Set(
+            (friendshipData?.friends || [])
+                .map((friend) => normalizeUsername(friend?.U_Username))
+                .filter(Boolean)
+        );
         visibleFeedCount = FEED_PAGE_SIZE;
         updateFilterButtons();
         renderFeed();

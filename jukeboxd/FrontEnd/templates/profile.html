@@ -6,6 +6,7 @@
     <title>Profile | jukeboxd</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/jb_favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-friendships.css') }}">
 </head>
 <body class="profile_body" data-user-id="{{ user_id }}" data-username="{{ username }}" data-is-own-profile="{{ 'true' if is_own_profile else 'false' }}">
     {% include "components/navbar.html" %}
@@ -93,61 +94,10 @@
     </main>
 
     {% if is_own_profile %}
-        <div id="edit-profile-modal" class="modal_overlay" hidden>
-            <div class="modal_shell modal_shell_profile" role="dialog" aria-modal="true" aria-labelledby="edit-profile-title">
-                <button id="edit-profile-close" class="modal_close" type="button" aria-label="Close edit profile dialog">&times;</button>
-
-                <form id="edit-profile-form" class="profile_edit_form" novalidate>
-                    <p class="review_modal_meta">Account</p>
-                    <h2 id="edit-profile-title" class="profile_edit_title">Edit profile</h2>
-                    <p class="profile_edit_copy">Update the basics for how your account appears across jukeboxd.</p>
-
-                    <div class="profile_edit_grid">
-                        <label class="profile_edit_field" for="edit-profile-first-name">
-                            <span class="profile_edit_label">First name</span>
-                            <input id="edit-profile-first-name" class="profile_edit_input" type="text" name="firstName" autocomplete="given-name" maxlength="40">
-                        </label>
-
-                        <label class="profile_edit_field" for="edit-profile-last-name">
-                            <span class="profile_edit_label">Last name</span>
-                            <input id="edit-profile-last-name" class="profile_edit_input" type="text" name="lastName" autocomplete="family-name" maxlength="40">
-                        </label>
-
-                        <label class="profile_edit_field" for="edit-profile-username">
-                            <span class="profile_edit_label">Username</span>
-                            <input id="edit-profile-username" class="profile_edit_input profile_edit_input_locked" type="text" name="username" autocomplete="username" minlength="5" maxlength="12" readonly disabled aria-describedby="edit-profile-username-note">
-                            <span id="edit-profile-username-note" class="profile_edit_hint">Username changes are locked for now.</span>
-                        </label>
-
-                        <label class="profile_edit_field" for="edit-profile-email">
-                            <span class="profile_edit_label">Email</span>
-                            <input id="edit-profile-email" class="profile_edit_input profile_edit_input_locked" type="email" name="email" autocomplete="email" maxlength="120" readonly disabled aria-describedby="edit-profile-email-note">
-                            <span id="edit-profile-email-note" class="profile_edit_hint">Email changes are locked for now.</span>
-                        </label>
-                    </div>
-
-                    <p id="edit-profile-message" class="profile_edit_message" aria-live="polite"></p>
-
-                    <div class="profile_edit_actions">
-                        <button id="edit-profile-cancel" class="profile_edit_button profile_edit_button_secondary" type="button">Cancel</button>
-                        <button id="edit-profile-save" class="profile_edit_button" type="submit">Save changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {% include "components/profile_edit_modal.html" %}
     {% endif %}
 
-    <div id="profile-friends-modal" class="modal_overlay" hidden>
-        <div class="modal_shell modal_shell_friends" role="dialog" aria-modal="true" aria-labelledby="profile-friends-modal-title">
-            <button id="profile-friends-close" class="modal_close" type="button" aria-label="Close friends list">&times;</button>
-            <div class="profile_friends_modal_body">
-                <p class="review_modal_meta">Friends</p>
-                <h2 id="profile-friends-modal-title" class="profile_edit_title">Friends</h2>
-                <p id="profile-friends-modal-meta" class="profile_edit_copy">Loading connections...</p>
-                <div id="profile-friends-list" class="profile_friend_grid" aria-live="polite"></div>
-            </div>
-        </div>
-    </div>
+    {% include "components/profile_friends_modal.html" %}
 
     {% include "components/scripts.html" %}
 </body>
