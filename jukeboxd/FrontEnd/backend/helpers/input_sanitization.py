@@ -245,7 +245,7 @@ def _sanitize_positive_int(value, field_name):
 
 def _build_sanitized_review_payload(data, username, user_id):
     sanitized_username = _sanitize_existing_username(username)
-    sanitized_user_id = _sanitize_positive_int(user_id, "User")
+    _sanitize_positive_int(user_id, "User")
     sanitized_review_text = _sanitize_review_text((data or {}).get("R_Text"))
     sanitized_review_rating = _sanitize_review_rating((data or {}).get("R_Rating"))
 
@@ -269,9 +269,8 @@ def _build_sanitized_review_payload(data, username, user_id):
         "R_Text": sanitized_review_text,
         "R_Rating": sanitized_review_rating,
         "R_NumOfLikes": 0,
-        "U_ID": sanitized_user_id,
         "U_Username": sanitized_username,
-        "R_TimeCreated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "R_TimeCreated": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
         selected_field: _sanitize_positive_int(
             target_fields[selected_field],
             selected_field.replace("_", " ")
