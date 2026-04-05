@@ -93,6 +93,15 @@ async function initProfilePage() {
         renderProfileReviews
     );
 
+    bindReviewCommentHandler(
+        profileReviewList,
+        () => profileReviews,
+        (reviews) => {
+            profileReviews = reviews;
+        },
+        renderProfileReviews
+    );
+
     if (editProfileButton) {
         editProfileButton.addEventListener("click", openEditProfileModal);
     }

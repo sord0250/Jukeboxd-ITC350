@@ -29,6 +29,36 @@ async function fetchSearchRelatedReviews(itemType, itemId, limit = 4) {
     return data;
 }
 
+async function fetchReviewComments(reviewId) {
+    const response = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/comments`);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not load comments.");
+    }
+
+    return data;
+}
+
+async function createReviewComment(reviewId, commentText) {
+    const response = await fetch(`/api/reviews/${encodeURIComponent(reviewId)}/comments`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            commentText
+        })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not add comment.");
+    }
+
+    return data;
+}
+
 async function fetchFeedReviews() {
     const response = await fetch("/api/feed");
     return await response.json();

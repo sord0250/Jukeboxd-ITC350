@@ -1,7 +1,13 @@
 import requests
 from flask import jsonify, request, session
 
-from backend.config import DIRECTUS_URL
+from backend.config import COMMENT_TEXT_LIMIT, DIRECTUS_URL
+from backend.helpers.comments import (
+    _add_review_comment,
+    _attach_comment_summaries,
+    _get_comment_summary_map,
+    _get_review_comments,
+)
 from backend.helpers.common import (
     _coerce_like_count,
     _extract_api_error,
@@ -54,6 +60,71 @@ def _get_normalized_profile_reviews(filtered_user_reviews):
 
 
 def register_review_routes(app):
+    @app.route("/api/reviews/<int:review_id>/comments", methods=["GET", "POST"])
+    def review_comments(review_id):
+        if request.method == "GET":
+            try:
+                comments = _get_review_comments(review_id, raise_on_error=True)
+            except RuntimeError as error:
+                return jsonify({
+                    "success": False,
+                    "message": str(error)
+                }), 502
+
+            return jsonify({
+                "success": True,
+                "data": comments,
+                "total": len(comments)
+            })
+
+        if "user_id" not in session:
+            return jsonify({"success": False, "message": "Please log in to comment."}), 401
+
+        review_response = requests.get(f"{DIRECTUS_URL}/items/REVIEW/{review_id}")
+        if review_response.status_code != 200:
+            review_error = review_response.json()
+            return jsonify({
+                "success": False,
+                "message": _extract_api_error(review_error, "Could not find that review.")
+            }), review_response.status_code
+
+        data = request.get_json(silent=True) or {}
+        comment_text = (data.get("commentText") or "").strip()
+
+        if not comment_text:
+            return jsonify({"success": False, "message": "Please write a comment."}), 400
+
+        if len(comment_text) > COMMENT_TEXT_LIMIT:
+            return jsonify({
+                "success": False,
+                "message": f"Comments must be {COMMENT_TEXT_LIMIT} characters or fewer."
+            }), 400
+
+        try:
+            comment = _add_review_comment(
+                review_id,
+                session.get("username"),
+                session.get("user_id"),
+                comment_text
+            )
+        except ValueError as error:
+            return jsonify({"success": False, "message": str(error)}), 400
+        except RuntimeError as error:
+            return jsonify({"success": False, "message": str(error)}), 502
+
+        summary = _get_comment_summary_map([review_id]).get(str(review_id), {
+            "comments_preview": [],
+            "comment_count": 0
+        })
+
+        return jsonify({
+            "success": True,
+            "message": "Comment added.",
+            "data": comment,
+            "comments_preview": summary["comments_preview"],
+            "comment_count": summary["comment_count"]
+        }), 201
+
     @app.route("/api/reviews/<int:review_id>/like", methods=["POST", "DELETE"])
     def like_review(review_id):
         if "user_id" not in session:
@@ -177,7 +248,7 @@ def register_review_routes(app):
             average_rating = round(sum(rated_values) / len(rated_values), 1)
 
         return jsonify({
-            "data": matching_reviews[:limit],
+            "data": _attach_comment_summaries(matching_reviews[:limit]),
             "total": len(matching_reviews),
             "average_rating": average_rating,
             "rated_total": len(rated_values),
@@ -187,15 +258,18 @@ def register_review_routes(app):
 
     @app.route("/api/song_reviews")
     def song_reviews():
-        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="song"))
+        filtered_reviews = _filter_normalized_reviews(_get_normalized_reviews(), review_type="song")
+        return jsonify(_attach_comment_summaries(filtered_reviews))
 
     @app.route("/api/album_reviews")
     def album_reviews():
-        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="album"))
+        filtered_reviews = _filter_normalized_reviews(_get_normalized_reviews(), review_type="album")
+        return jsonify(_attach_comment_summaries(filtered_reviews))
 
     @app.route("/api/artist_reviews")
     def artist_reviews():
-        return jsonify(_filter_normalized_reviews(_get_normalized_reviews(), review_type="artist"))
+        filtered_reviews = _filter_normalized_reviews(_get_normalized_reviews(), review_type="artist")
+        return jsonify(_attach_comment_summaries(filtered_reviews))
 
     @app.route("/api/user_reviews")
     def user_reviews():
@@ -210,14 +284,14 @@ def register_review_routes(app):
             username=username,
             user_id=user_id
         )
-        return jsonify(_get_normalized_profile_reviews(filtered_user_reviews))
+        return jsonify(_attach_comment_summaries(_get_normalized_profile_reviews(filtered_user_reviews)))
 
     @app.route("/api/feed")
     def feed():
         feed_response = requests.get(f"{DIRECTUS_URL}/feed_review")
         review_response, song_response, album_response, artist_response, makes_song_response, makes_album_response = _fetch_review_reference_payloads()
 
-        return jsonify(_normalize_feed_payload(
+        normalized_feed = _normalize_feed_payload(
             feed_response.json(),
             review_response,
             song_response,
@@ -225,7 +299,9 @@ def register_review_routes(app):
             artist_response,
             makes_song_response,
             makes_album_response
-        ))
+        )
+
+        return jsonify(_attach_comment_summaries(normalized_feed))
 
     @app.route("/api/add_review", methods=["POST"])
     def add_review():
@@ -243,4 +319,4 @@ def register_review_routes(app):
     def get_user_reviews(username):
         user_review_response = requests.get(f"{DIRECTUS_URL}/user_review/")
         filtered_user_reviews = _filter_user_reviews(user_review_response.json(), username=username)
-        return jsonify(_get_normalized_profile_reviews(filtered_user_reviews))
+        return jsonify(_attach_comment_summaries(_get_normalized_profile_reviews(filtered_user_reviews)))

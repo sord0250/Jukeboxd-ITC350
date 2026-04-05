@@ -174,6 +174,15 @@ function initSearchPage() {
         renderSearchDetailModal
     );
 
+    bindReviewCommentHandler(
+        detailContent,
+        () => activeRelatedReviews,
+        (reviews) => {
+            activeRelatedReviews = reviews;
+        },
+        renderSearchDetailModal
+    );
+
     async function renderResults(query = "") {
         const normalizedQuery = query.trim();
 

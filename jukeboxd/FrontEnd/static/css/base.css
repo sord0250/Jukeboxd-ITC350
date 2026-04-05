@@ -1418,6 +1418,113 @@
         font-family: Georgia, "Times New Roman", serif;
     }
 
+    .review_comments_modal_list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .detail_comment_item {
+        padding: 12px 14px;
+        border: 1px solid rgba(67, 54, 48, 0.08);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.76);
+    }
+
+    .detail_comment_head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .detail_comment_author {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #2f2622;
+    }
+
+    .detail_comment_time {
+        font-size: 0.78rem;
+        color: #8a7567;
+        white-space: nowrap;
+    }
+
+    .detail_comment_text {
+        margin: 8px 0 0;
+        color: #5e4f47;
+        line-height: 1.56;
+        font-size: 0.92rem;
+    }
+
+    .detail_comments_empty {
+        margin: 12px 0 0;
+        color: #7b695f;
+        font-size: 0.92rem;
+    }
+
+    .detail_comment_form {
+        margin-top: 14px;
+        display: grid;
+        gap: 8px;
+    }
+
+    .detail_comment_input {
+        width: 100%;
+        min-height: 74px;
+        padding: 12px 14px;
+        border: 1px solid rgba(67, 54, 48, 0.14);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.88);
+        color: #2f2622;
+        font: inherit;
+        line-height: 1.5;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .detail_comment_input:focus {
+        outline: none;
+        border-color: rgba(140, 69, 63, 0.34);
+        box-shadow: 0 0 0 3px rgba(140, 69, 63, 0.08);
+    }
+
+    .detail_comment_form_footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .detail_comment_hint,
+    .detail_comment_message,
+    .review_comments_modal_count {
+        font-size: 0.84rem;
+        color: #8a7567;
+    }
+
+    .detail_comment_message {
+        margin: 0;
+    }
+
+    .detail_comment_submit {
+        border: none;
+        border-radius: 999px;
+        background: #2f2622;
+        color: #fff8f0;
+        font: inherit;
+        font-size: 0.86rem;
+        font-weight: 700;
+        padding: 9px 14px;
+        cursor: pointer;
+    }
+
+    .detail_comment_submit:hover,
+    .detail_comment_submit:focus-visible {
+        background: #473a34;
+        outline: none;
+    }
+
     .detail_review_media {
         position: relative;
         display: flex;
@@ -1496,7 +1603,8 @@
         margin-left: auto;
     }
 
-    .detail_review_like_button {
+    .detail_review_like_button,
+    .detail_review_comment_button {
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -1521,6 +1629,15 @@
         transform: translateY(-1px);
     }
 
+    .detail_review_comment_button:hover,
+    .detail_review_comment_button:focus-visible {
+        border-color: rgba(140, 69, 63, 0.28);
+        box-shadow: 0 10px 22px rgba(140, 69, 63, 0.12);
+        color: #8c453f;
+        outline: none;
+        transform: translateY(-1px);
+    }
+
     .detail_review_like_button.is-liked,
     .detail_review_like_button:disabled {
         border-color: rgba(150, 61, 61, 0.22);
@@ -1531,8 +1648,19 @@
         transform: none;
     }
 
-    .detail_review_like_icon {
+    .detail_review_comment_button.is-active {
+        border-color: rgba(140, 69, 63, 0.22);
+        background: rgba(140, 69, 63, 0.08);
+        color: #8c453f;
+    }
+
+    .detail_review_like_icon,
+    .detail_review_comment_icon {
         line-height: 1;
+    }
+
+    .detail_review_comment_icon {
+        font-size: 0.95rem;
     }
 
     @media (max-width: 640px) {
@@ -1583,6 +1711,12 @@
             justify-content: flex-start;
             margin-left: 0;
         }
+
+        .detail_comment_head,
+        .detail_comment_form_footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
     }
 
     .detail_empty_reviews {
@@ -1592,6 +1726,21 @@
 
     .review_modal_body {
         padding-top: 10px;
+    }
+
+    .review_comments_modal_body {
+        padding-top: 10px;
+        display: grid;
+        gap: 16px;
+    }
+
+    .review_comments_modal_count {
+        margin: 0;
+    }
+
+    .review_comments_modal_form,
+    .review_comments_modal_list {
+        margin-top: 0;
     }
 
     .review_modal_head {

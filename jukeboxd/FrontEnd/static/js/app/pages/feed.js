@@ -89,6 +89,15 @@ async function initHomeFeed() {
         renderFeed
     );
 
+    bindReviewCommentHandler(
+        feedList,
+        () => allFeedReviews,
+        (reviews) => {
+            allFeedReviews = reviews;
+        },
+        renderFeed
+    );
+
     filterButtons.forEach((button) => {
         button.addEventListener("click", () => {
             activeFeedFilter = button.dataset.feedFilter || "all";
