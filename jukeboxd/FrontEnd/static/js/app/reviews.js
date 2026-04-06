@@ -631,7 +631,7 @@ function createFeedCard(entry, index = 0) {
     const commentCount = getReviewCommentCount(entry);
     const artwork = getReviewArtwork(entry);
     const reviewType = String(entry.review_type || "").toLowerCase();
-    const isAlbumReview = reviewType === "album";
+    const showsVinyl = reviewType === "album" || reviewType === "song";
     const ratingDisplay = formatFeedRatingDisplay(entry.review_rating);
     const supportingLine = (reviewType === "song" || reviewType === "album")
         ? String(entry.artist_names || "").trim()
@@ -646,7 +646,7 @@ function createFeedCard(entry, index = 0) {
 
     return `
         <article
-            class="detail_review_card${isAlbumReview ? " detail_review_card_album" : ""}"
+            class="detail_review_card"
             data-item-id="${entry.review_id}"
             data-review-index="${index}"
         >
@@ -707,8 +707,8 @@ function createFeedCard(entry, index = 0) {
                     </div>
                 </div>
 
-                <div class="detail_review_media${isAlbumReview ? " detail_review_media_album" : ""}">
-                    ${isAlbumReview ? `<img class="detail_review_vinyl" src="/static/img/jb_record.png" alt="">` : ""}
+                <div class="detail_review_media${showsVinyl ? " detail_review_media_with_vinyl" : ""}">
+                    ${showsVinyl ? `<img class="detail_review_vinyl" src="/static/img/jb_record.png" alt="">` : ""}
                     <img class="detail_review_artwork" src="${artwork.src}" alt="${artwork.alt}">
                 </div>
             </div>
