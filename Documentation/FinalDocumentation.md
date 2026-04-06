@@ -1,5 +1,5 @@
 ---
-marp: true
+marp: false
 ---
 
 
@@ -107,7 +107,7 @@ Jukeboxd Entity Relationship Diagram
 ## SCHEMA DIAGRAM
 Jukeboxd Relational Schema Diagram
 
-*Diagram elements included:* U Username, U FName, ULName, USER, U Password Hash, UID, U Email, U Role, REVIEW, (U), BID, R.Text, R.Rating, R TimeCreated, R.NumOfLikes, SID, ART ID ALID, Username, (FK) (0), (FK) (O), (FK)(0), (FK), SIR, AL ID, AL Name, AL DateCreated, AL Genre, ALBUM, S Length, 5.Name, S. Genre, AR ID, ALID, ALID, ART ID ALID, SONG, (0), (0), SID, ART ID, MAKES_SONG, (FK) (FK), ARTIST, ART ID, ART Name, ART Genre, (FK), MAKES ALBUM, (FK) (FK).
+![ERD](./Schema.png)
 
 ---
 
@@ -155,7 +155,7 @@ Jukeboxd Relational Schema Diagram
 ## DATABASE DOCUMENTATION
 
 ### GITHUB DOCUMENTATION
-Jukeboxd is a public GitHub. To access the scripts that we have used to create our database, click this link https://github.com/sord0250/Jukeboxd-ITC350 and go to the 'Milestone 3' folder found under the 'Jukeboxd' folder. You will find the following scripts that contain SQL queries that configure the database, fill it with "dummy data," and empty the tables:
+Jukeboxd is a public GitHub. To access the scripts that we have used to create our database, click [this link](https://github.com/sord0250/Jukeboxd-ITC350) and go to the 'Milestone 3' folder found under the 'Jukeboxd' folder. You will find the following scripts that contain SQL queries that configure the database, fill it with "dummy data," and empty the tables:
 
 * 'Create Tables'
 * 'DeleteAll'
@@ -165,15 +165,7 @@ Jukeboxd is a public GitHub. To access the scripts that we have used to create o
 The scripts are also listed in Appendix 3 of this document.
 
 As you can see in the screenshot below, each of the 5 team members can contribute to this repository.
-* RobKing2001 | 8 commits: 660 618-
-* jamesds11 | #1 | #2 | 5 commits 166 84-
-* Contributions | 5429 | 19 Jan | 2 Feb | 16 Feb
-* bremlew | 2 commits 1070- | #3 | Contributions: | 642Q | 19 Jan | 2.Feb | 16 Feb
-* Contributions | 6420 | 19 Jan | 2 Feb | 16 Feb
-* neonsushi | 1 commit 2440
-* sord0250 | 1 commit 5100- | #5 | 6 | 19 Jan | 2 Feb | 16 Feb | #4 | 6 | 19 Jan | 2 Feb | 16 Feb
-* Contributions | 4 | 2
-* Contributions | 4 | 20
+![commits](./commits.png)
 
 ### NECESSARY DEPENDENCIES
 * **GITHUB** - our scripts and code live on the GitHub repository mentioned above.
