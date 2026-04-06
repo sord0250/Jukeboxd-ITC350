@@ -1,4 +1,5 @@
 # Jukeboxd
+Jukeboxd is a music review app. Using the website, users can write reviews for their favorite songs
 
 ## Setup
 
