@@ -1,5 +1,4 @@
 # Jukeboxd
-Jukeboxd is a music review app. Using the website, users can write reviews for their favorite songs and albums, like and comment on other's reviews, and send friend requests to other users.
 
 ## Setup
 
