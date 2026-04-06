@@ -1,3 +1,8 @@
+---
+marp: true
+---
+
+
 # JUKEBOXD: MUSIC REVIEWS
 
 ## IT&C 350 DATABASE DESIGN PROJECT
@@ -95,7 +100,7 @@ The following contains a breakdown of our stakeholders:
 ### ER DIAGRAM IMAGES
 Jukeboxd Entity Relationship Diagram
 
-*Diagram elements included:* U FName, 12LName, UID, U Name, U Username, UPasswordHash, USER, U Emall, U Role, ALID, AL Name, AL DateCreated, AL Genre, Makes Review, RID, Of Album, AR ID, S Genre, Contains Song, ALBUM, SR, R NumOfLikes 0), R.Text (0), R. Rating, REVIEW, Of Song, RTimeCroatod, ALID, Of Artist, 5.Length, 5. Name, SONG, Makes Album, ART Name, 오, Makes Song, ARTIST, ART Genre, ART ID.
+![ERD](./ERD.png)
 
 ---
 
