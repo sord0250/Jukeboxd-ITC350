@@ -1,0 +1,7 @@
+Virtual Environment Setup
+
+from the API Experiment Directory run:
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install spotipy
+python to_csv.py
