@@ -5,9 +5,9 @@ from spotipy.oauth2 import SpotifyOAuth
 
 # --- Spotify setup ---
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id= CLIENT_ID,
-    client_secret= CLIENT_SECRET,
-    redirect_uri=CALLBACK_URI,
+    client_id= "686185dff4da4ed28f142727cee594f5",
+    client_secret= "10f4c324a2dc41d7b1779498aa049899",
+    redirect_uri= "http://127.0.0.1:8888/callback",
     scope="user-top-read"
 ))
 
