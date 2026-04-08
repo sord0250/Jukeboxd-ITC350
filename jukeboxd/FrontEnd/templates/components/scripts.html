@@ -1,3 +1,6 @@
+<script>
+window.JUKEBOXD_CONFIG = Object.freeze({{ client_config | tojson }});
+</script>
 <script src="{{ url_for('static', filename='js/app/core.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app/reviews.js') }}"></script>
