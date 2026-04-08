@@ -570,5 +570,3 @@ JOIN review r
 	ON u.U_Username = r.U_Username;
 ```
 
-
-
