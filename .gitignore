@@ -3,3 +3,6 @@ venv/
 env/
 __pycache__/
 *.pyc
+.env
+jukeboxd/API Experiment/.cache
+jukeboxd/API Experiment/.spotify-cache

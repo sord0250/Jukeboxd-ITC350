@@ -10,6 +10,9 @@ This document explains what each file in the repository does.
 - `README2.md`  
   This file. It serves as a file-by-file map of the repository.
 
+- `.env.example`  
+  Template for the local environment variables the project expects, including the Flask secret key and Spotify API credentials.
+
 - `requirements.txt`  
   Lists the Python dependencies the Flask app needs: Flask, Requests, and bcrypt.
 
@@ -77,7 +80,7 @@ This document explains what each file in the repository does.
   Package marker for the backend module.
 
 - `jukeboxd/FrontEnd/backend/config.py`  
-  Central configuration file. It defines paths, the Flask secret key, the Directus base URL, and input-size limits for sanitization.
+  Central configuration file. It loads `.env`, reads the Flask secret key from environment variables, defines the Directus base URL, and stores input-size limits for sanitization.
 
 ### `jukeboxd/FrontEnd/backend/routes`
 

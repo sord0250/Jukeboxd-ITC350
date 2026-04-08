@@ -3,6 +3,7 @@ Use commands
 - python -m venv .venv
 - python -m pip --python .\.venv install -r requirements.txt
 - .\.venv\Scripts\Activate.ps1
+- Copy-Item .env.example .env
 - python .\jukeboxd\FrontEnd\app.py
 
 navigate to
