@@ -18,14 +18,43 @@ marp: false
 
 ## TABLE OF CONTENTS
 
-| Section | Page |
-| :--- | :--- |
-| Project Overview | 1 |
-| Project Objective Statement | 2 |
-| Project Stakeholders | 3 |
-| Type chapter level (level 1) | 4 |
-| Type chapter level (level 2) | 5 |
-| Type chapter title (level 3) | 6 |
+* [PROJECT OBJECTIVE](#project-overview)
+  * [PROJECT OBJECTIVE STATEMENT](#project-objective-statement)
+  * [PROJECT STAKEHOLDERS](#project-stakeholders)
+* [APP REQUIREMENTS](#app-requirements)
+  * [FUNCTIONAL REQUIREMENTS](#functional-requirements)
+  * [NON-FUNCTIONAL REQUIREMENTS](#non-functional-requirements)
+* [DATABASE REQUIREMENTS](#database-requirements)
+  * [ER DIAGRAM IMAGES](#er-diagram-images)
+  * [SCHEMA DIAGRAM](#schema-diagram)
+* [BUSINESS RULES](#business-rules)
+  * [FIELD RULES](#field-rules)
+  * [RELATIONAL RULES](#relational-rules)
+  * [ROLE RULES](#role-rules)
+  * [APPLICATION RULES](#application-rules)
+* [DATABASE DOCUMENTATION](#database-documentation)
+  * [GITHUB DOCUMENTATION](#github-documentation)
+  * [NECESSARY DEPENDENCIES](#necessary-dependencies)
+  * [CREATING THE DATABASE](#creating-the-database)
+* [DATABASE VIEW DOCUMENTATION](#database-view-documentation)
+* [API DOCUMENTATION](#api-documentation)
+* [FRONT-END DOCUMENTATION](#front-end-documentation)
+* [DESIGN CHANGES](#design-changes)
+* [APPENDIX 1](#appendix-1-low-fidelity-paper-prototypes)
+* [APPENDIX 2](#appendix-2-sql-scripts)
+  * [CREATE STATEMENTS](#create-tables)
+  * [INSERT STATEMENTS](#insert-statements)
+  * [DELETE STATEMENTS](#delete-statements)
+  * [DELETE EVERYTHING](#delete-everything)
+* [APPENDIX 3](#appendix-3-sql-views)
+  * [SEARCH VIEW](#search-view)
+  * [ALBUM REVIEW VIEW](#album-review-view)
+  * [ARTIST REVIEW VIEW](#artist-review-view)
+  * [ALBUM REVIEW VIEW](#album-review-view)
+  * [USER REVIEW VIEW](#user-review-view)
+
+
+
 
 ---
 
@@ -113,14 +142,14 @@ Jukeboxd Relational Schema Diagram
 
 ## BUSINESS RULES
 
-### Field Rules
+### FIELD RULES
 * Usernames must be at least 5 characters long and no longer than 12 characters
 * The text field of a review cannot exceed 300 characters in length
 * A review must have a star input (out of 5 stars, including 0)
 * No duplicate usernames
 * No duplicate emails
 
-### Relational Rules
+### RELATIONAL RULES
 * An album must have at least 1 song
 * An album must have at least 1 artist
 * An artist must have at least 1 album
@@ -128,7 +157,7 @@ Jukeboxd Relational Schema Diagram
 * A review must have at least 1 album, artist, or song
 * A review must have a star input (out of 5 stars, including 0)
 
-### Role Rules
+### ROLE RULES
 * Users cannot modify other users
 * Users can make reviews
 * Users can "like" any other user's reviews
@@ -143,7 +172,7 @@ Jukeboxd Relational Schema Diagram
 * Admin users can create new genres
 * Admin users can modify descriptive tags
 
-### Application Rules
+### APPLICATION RULES
 * Passwords cannot be a single dictionary word (putting password rules here because we do not store plaintext passwords in the database, so any logic will be in the application)
 * Password must be 8 characters long and no longer than 16
 * Password must contain a combination of Upper and Lowercase letters
@@ -215,7 +244,7 @@ To see the queries that are run to create the views, click on the hyperlinks abo
 
 ## FRONT-END DOCUMENTATION
 
-## OTHER CHANGES
+## DESIGN CHANGES
 
 ## APPENDIX 1: LOW-FIDELITY PAPER PROTOTYPES
 
@@ -569,4 +598,6 @@ FROM user u
 JOIN review r
 	ON u.U_Username = r.U_Username;
 ```
+
+
 
