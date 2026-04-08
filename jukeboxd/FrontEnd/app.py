@@ -1,6 +1,6 @@
 from flask import Flask
 
-from backend.config import BASE_DIR, SECRET_KEY
+from backend.config import BASE_DIR, DIRECTUS_URL, SECRET_KEY
 from backend.routes.auth import register_auth_routes
 from backend.routes.data import register_data_routes
 from backend.routes.friendships import register_friendship_routes
@@ -15,6 +15,11 @@ app = Flask(
     static_folder=str(BASE_DIR / "static"),
 )
 app.secret_key = SECRET_KEY
+
+
+@app.context_processor
+def inject_client_config():
+    return {"client_config": {"DIRECTUS_URL": DIRECTUS_URL}}
 
 
 register_page_routes(app)

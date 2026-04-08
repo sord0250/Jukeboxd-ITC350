@@ -1,14 +1,57 @@
 import csv
+import os
 import time
+from pathlib import Path
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
+ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+SPOTIFY_CACHE_FILE = Path(__file__).resolve().with_name(".spotify-cache")
+
+
+def load_env_file(env_file):
+    if not env_file.exists():
+        return
+
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+
+        if not key:
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+
+        os.environ.setdefault(key, value)
+
+
+def require_env(name):
+    value = os.getenv(name)
+    if value:
+        return value
+
+    raise RuntimeError(
+        f"Missing required environment variable '{name}'. "
+        f"Create {ENV_FILE} from .env.example before running this script."
+    )
+
+
+load_env_file(ENV_FILE)
+
 # --- Spotify setup ---
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id= "686185dff4da4ed28f142727cee594f5",
-    client_secret= "10f4c324a2dc41d7b1779498aa049899",
-    redirect_uri= "http://127.0.0.1:8888/callback",
-    scope="user-top-read"
+    client_id=require_env("SPOTIFY_CLIENT_ID"),
+    client_secret=require_env("SPOTIFY_CLIENT_SECRET"),
+    redirect_uri=os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8888/callback"),
+    scope="user-top-read",
+    cache_path=str(SPOTIFY_CACHE_FILE),
 ))
 
 # --- Helpers ---
