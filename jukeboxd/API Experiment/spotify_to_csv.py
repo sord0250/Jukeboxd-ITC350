@@ -2,11 +2,27 @@ import csv
 import time
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from dotenv import load_dotenv
+import os
+
+# This file was developed using ChatGPT
+# Running this file will create 5 .csv files based on your personal Spotify data:
+# artists (contains artist metadata for your top 20 artists and any artists they collaborated with)
+# albums (contains album metadata for your top 20 artists)
+# songs (contains song metadata for the songs on the selected albums)
+# makes_album (links artists to albums)
+# makes_song (links artists to songs)
+
+load_dotenv()  # loads variables from .env
+
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+CALLBACK_URI = os.getenv("CALLBACK_URI")
 
 # --- Spotify setup ---
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-    client_id= CLIENT_ID,
-    client_secret= CLIENT_SECRET,
+    client_id= CLIENT_ID, 
+    client_secret= CLIENT_SECRET, 
     redirect_uri=CALLBACK_URI,
     scope="user-top-read"
 ))

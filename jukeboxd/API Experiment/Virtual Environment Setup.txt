@@ -1,7 +1,23 @@
 Virtual Environment Setup
 
-from the API Experiment Directory run:
+If you just want example data, feel free to load the included .csv files into Directus.
+
+If you would like to use your own data, do the following:
+From the API Experiment Directory run:
+
+# Create virtual environment
 python -m venv .venv
+
+# Activate the environment
+
+# Windows
 .\.venv\Scripts\activate
-pip install spotipy
-python to_csv.py
+
+# Mac/Linux
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the file
+python spotify_to_csv.py
