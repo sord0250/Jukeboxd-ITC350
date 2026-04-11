@@ -292,7 +292,7 @@ Our web application is incredibly complex and runs many files to properly. Below
 - `jukeboxd/FrontEnd/app.py`  
   Our frontend is running through a python flask container. `app.py` creates the core functionality of our frontend. It establishes the API routes for the rest of the functions. This file serves as the bridge between the database and the python files we created for the rest of the frontend to work. The only dependency we used for this file was `python.flask`. This file pulls the global variables used throughout the program from `config.py`. The only function this file uses is `{"client_config": {"DIRECTUS_URL": DIRECTUS_URL}}`, which injects the DIRECTUS_URL into all `.py` functions used in the program. 
 
-### /BACKEND
+### /BACKEND/ROUTES
 
 #### `jukeboxd/FrontEnd/backend`
 
@@ -323,18 +323,61 @@ Our web application is incredibly complex and runs many files to properly. Below
   This file connects to the Directus API endpoints, and sets a route for the rest of the application to connect to the basic Directus endpoints. This file has dependencies on `python.requests` and `jsonify`. This file is stateless and creates a function for each API endpoint. For example, `get_users()` retrieves the Directus endpoint `/items/USER` for use by the frontend. 
 
 - `jukeboxd/FrontEnd/backend/routes/profile.py`  
-  This file creates the backend logic for the user profile page. This file uses both GET and PATCH methods to pull from and update the database. This file checks for session state set with `user_id` and `username`. If there is no path set, and if there is a set This file is dependent on `python.flask` and `python.requests`. 
+  This file creates the backend logic for the user profile page. This file uses both GET and PATCH methods to pull from and update the database. This file checks for session state set with `user_id` and `username` if there is no path set. When this page is generated from session data, it also give the user the ability to edit their profile. When a user attempts to update their profile information, this file validates names, prevents email/username changes, and updates Directus. Alternatively, if there is a set username in the URL path, it will display the requested users profile page and the reviews that they have made. This file is dependent on `python.flask` and `python.requests`. This file can update the session state by changing the username. This file mainly consists of a single function (`register_profile_routes()`), which GETs user profile pages, and PATCHES them when the edit profile button is pressed. 
+
 
 - `jukeboxd/FrontEnd/backend/routes/reviews.py`  
-  Largest route module. It powers the review feed, related review search, likes, comments, user review lists, and review creation.
+  This file imports many functions from the `backend/helpers` section of the code and is the most complicated route module. It accomplishes several important sections of the frontend: the review feed, related review search, likes, comments, user review lists, and review creation. This creates a list of items to search through, so each song, artist, and album is an item that can be searched for and displayed in the feed. 
+  This file has dependencies on `python.flask`, and `python.requests`. This file reads from the session state, and POSTs to Directus updated comments, likes, and reviews. 
+
+  - `/feed` 
+
+    This endpoint grabs the `feed_review` from Directus. This connects to a `feed` function that pulls reference data for songs, albums, and artists, normalizes them, then attatches review comments to songs in the feed. 
+
+  - `/search_related_reviews`
+
+    This endpoint pulls all reviews from Directus and filters them by `item_type` and `item_id`, which were defined in the search view extension in Directus. This also sorts the items in the feed by likes and date, and running them through a function that creates a key for each review, then sorts each item by its respective key. 
+
+  - `/api/reviews/<id>/like`
+
+    This endpoint tracks the likes of a specific comment, chosen by the `<id>` in the URL endpoint. This endpoint fetches the number of likes, and can change the number of likes by adding a new one or deleting one. This is done by read-modify-write (fetches current count and either adds or subtracts one based on HTTP method), and doesn't track likes by a specific user. This can cause race conditions, but we didn't feel the need to created a more complicated solution. 
+
+  - `/api/reviews/<id>/comments` 
+
+    This endpoint returns all comments for a specific review, again chosen by the `<id>` in the URL endpoint. This endpoint accepts GET methods to show a review's comments, and it accepts POST to create a new comment. When the method is POST, the user login in confirmed, the review is also verified to exist, the comment text is sanitized and pushed to the server. Then the content summary is returned to the user's browser. 
+
+  - `/api/user_reviews/<username>`
+
+    This endpoint returns the Directus `user_review` view and filters it based on `username`. Then comments and likes for each review are attached. All reviews by the specified user are displayed, and if there is no `<username>` in the URL, then the user specified by the session state is displayed instead. 
+
+  - `/add_review` 
+
+    This endpoint verifies that the user's session state is set correctly, and lets a signed in user create a review. When the review is submitted, `input_sanitization.py` is called to sanitize user inputs. If the input passes `input_sanitization.py`, it is POSTed to Directus to then be displayed in the feed and in the associated user's `user_review` list. 
+
 
 - `jukeboxd/FrontEnd/backend/routes/friendships.py`  
-  Friendship API routes for loading friendship state, sending requests, accepting requests, canceling or declining requests, and removing friends.
+  This file creates the friendship functionality. It allows users to view theri friend list, send freind requests, and accept or delete requests. API routes for loading friendship state, sending requests, accepting requests, canceling or declining requests, and removing friends. This file uses the session state to verify that the user is logged in, and sends POSTs, PATCHes, and DELETEs to directus to update friendship statuses. This code has dependencies on `datetime`, `requests`, and `flask`. It changes friendship status state, so the UI state is actively modified based on sent, accepted, and rejected friend requests. 
+
+  - `/api/friendships` (GET)  
+
+    This endpoint takes a username, either from a query or a interactive button, and returns that 
+    user's friend list, and the current friendship relationship between the viewer and the 
+    viewed user. If the user being viewed is the active user in the session state, then their incoming friend requests are also displayed. Friend lists are sorted alphabetically, incoming requests are sorted by the most recently sent.
+
+  - `/api/friendships` (POST)  
+
+    This endpoint actually sends a friend request to a specific user by username in URL query. If a friendship already exists, then it returns a conflict message. If no friendship exists, it POSTs a new `FRIENDSHIP` record to Directus with status `pending` and the logged in user as the requester.
+
+  - `/api/friendships/<id>` (PATCH/DELETE)  
+
+    This endpoint deals with a sent friend request. Directus validates if the friendship exists, and if the request is still pending. The DELETE method can remove existing freidnships as well as reject incoming requests. Then, depending on user interaction with the webpage, it either a PATCH or DELETE HTTP request are sent to Directus. It a PATCH was sent, Directus with status `accepted` and a timestamp, and if a DELETE was sent, it returns "Friend removed", "Friend request canceled", or "Friend request declined" depending on the prior state of the 
+    friendship. 
+
+
+### /BACKEND/HELPERS
+
 
 #### `jukeboxd/FrontEnd/backend/helpers`
-
-- `jukeboxd/FrontEnd/backend/helpers/__init__.py`  
-  Package marker for backend helper modules.
 
 - `jukeboxd/FrontEnd/backend/helpers/common.py`  
   Shared backend utilities for extracting Directus payloads, filtering user reviews, normalizing item types, coercing like counts, and surfacing API error messages.
@@ -395,22 +438,6 @@ Our web application is incredibly complex and runs many files to properly. Below
 
 - `jukeboxd/FrontEnd/templates/components/profile_friends_modal.html`  
   Partial template for the popout friends-list modal on the profile page.
-
-### /STATIC/CSS
-
-#### `jukeboxd/FrontEnd/static/css`
-
-- `jukeboxd/FrontEnd/static/css/base.css`  
-  Main stylesheet for the app. It contains the global layout, navbar, feed cards, search UI, add-review form, profile layout, modals, and responsive styling.
-
-- `jukeboxd/FrontEnd/static/css/profile-friendships.css`  
-  Focused stylesheet for friendship and friends-list UI on the profile page.
-
-- `jukeboxd/FrontEnd/static/css/components.css`  
-  Currently empty placeholder stylesheet. It appears to have been reserved for shared component styles but is not active right now.
-
-- `jukeboxd/FrontEnd/static/css/layout.css`  
-  Currently empty placeholder stylesheet. It appears to have been reserved for layout-specific styles but is not active right now.
 
 
 ### /STATIC/JS
