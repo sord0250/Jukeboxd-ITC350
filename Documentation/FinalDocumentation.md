@@ -275,6 +275,13 @@ One issue we had with Directus was creating our views. Since Directus created th
 
 Here is an example of a Directus view extension. 
 
+
+
+
+
+
+## FRONT-END DOCUMENTATION
+
 ### BACKEND ROUTES
 
 There are some URL routes that are explicitly defined in our code ([auth.py](https://github.com/sord0250/Jukeboxd-ITC350/blob/main/jukeboxd/FrontEnd/backend/routes/auth.py)). Below are the URL routes we created for the backend to function. 
@@ -295,12 +302,6 @@ This endpoint checks if a user exists in the database. It also sends the user in
 
 ### FRONTEND ROUTES
 
-
-
-
-## FRONT-END DOCUMENTATION
-
-## DESIGN CHANGES
 
 ## APPENDIX 1: LOW-FIDELITY PAPER PROTOTYPES
 
