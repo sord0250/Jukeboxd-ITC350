@@ -244,15 +244,59 @@ To see the queries that are run to create the views, click on the hyperlinks abo
 
 Our database is being hosted on a Digital Ocean Droplet that our entire team had access to. To make our database available online, we downloaded Directus, a headless content management system. This CMS automatically wraps our database and generates a RESTful API, so we didn't need to create the REST API ourselves. This led to other issues, but we were able to successfully overcome all of them and create a working API for our jukeboxd database. 
 
-### /LOGOUT
+### DIRECTUS ROUTES 
 
-This API endpoint clears the current user's session data and redirects them to the root URL. The user is automatically logged out because their user_id and username that are being stored in the Flask session are deleted. 
+#### /items/ARTIST
 
-### /API 
+#### /items/ALBUM
 
-This is 
+#### /items/USER
+
+#### /items/SONG
+
+#### /items/REVIEW
+
+#### /search?q=
+
+#### /artist_review/
+
+#### /album_reviews/
+
+#### /song_review/
+
+#### /user_review/
+
+
+### DIRECTUS PROBLEMS
+
+One issue we had with Directus was creating our views. Since Directus created the API for use, we could not configure it to connect to our database views, or even see them. It took some work, but for each view that we wanted in our database, we needed to create a `.js` extension file that did ended up doing the same thing as creating a view, but with a lot more steps.  
 
 ![directusExample](./directusExtensionExample.png)
+
+Here is an example of a Directus view extension. 
+
+### BACKEND ROUTES
+
+There are some URL routes that are explicitly defined in our code ([auth.py](https://github.com/sord0250/Jukeboxd-ITC350/blob/main/jukeboxd/FrontEnd/backend/routes/auth.py)). Below are the URL routes we created for the backend to function. 
+
+#### /logout 
+
+This endpoint clears the current user's session data and redirects them to the root URL. It uses a GET method to call `session.clear()`. The user is automatically logged out because their user_id and username that are being stored in the Flask session are deleted. This doesn't interact with Directus at all. 
+
+#### /api/register
+
+This endpoint uses a POST method to register a new user in the database. This endpoint uses the parameters firstName, lastName, username, email, and password to create the new user. This route first sends the input parameters through `input_sanitization.py`. If an input does not pass an `input_sanitization.py`, it is set as NULL, and the user is prompted to insert a valid input instead. Then, all passwords are hashed with `bcrypt.hashpw`. Then, a POST is sent to the Directus endpoint `/items/USER` with the user's information. 
+
+#### /api/login
+
+This endpoint checks if a user exists in the database. It also sends the user inputs to `input_sanitization.py`, and subsequently passes the password through a hash function before sending them to `/items/USER` in Directus with a GET request. If the password hash doesn't match with the one stored in the database, the login fails, and if the username does not exist in the database, then the login also fails. If the passwords match, then `session["user_id"]` and `session["username"]` are set from the U_ID and U_Username pulled from the database. 
+
+
+
+### FRONTEND ROUTES
+
+
+
 
 ## FRONT-END DOCUMENTATION
 
