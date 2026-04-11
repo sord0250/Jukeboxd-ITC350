@@ -39,7 +39,10 @@ marp: false
 * [DATABASE VIEW DOCUMENTATION](#database-view-documentation)
 * [API DOCUMENTATION](#api-documentation)
 * [FRONT-END DOCUMENTATION](#front-end-documentation)
-* [DESIGN CHANGES](#design-changes)
+  * [/BACKEND`](#backend)
+  * [/TEMPLATES`](#templates)
+  * [/STATIC/CSS`](#static-css)
+  * [/STATIC/JS`](#static-js)
 * [APPENDIX 1](#appendix-1-low-fidelity-paper-prototypes)
 * [APPENDIX 2](#appendix-2-sql-scripts)
   * [CREATE STATEMENTS](#create-tables)
@@ -289,6 +292,7 @@ Our web application is incredibly complex and runs many files to properly. Below
 - `jukeboxd/FrontEnd/app.py`  
   Our frontend is running through a python flask container. `app.py` creates the core functionality of our frontend. It establishes the API routes for the rest of the functions. This file serves as the bridge between the database and the python files we created for the rest of the frontend to work. The only dependency we used for this file was `python.flask`. This file pulls the global variables used throughout the program from `config.py`. The only function this file uses is `{"client_config": {"DIRECTUS_URL": DIRECTUS_URL}}`, which injects the DIRECTUS_URL into all `.py` functions used in the program. 
 
+### /BACKEND
 
 #### `jukeboxd/FrontEnd/backend`
 
@@ -316,10 +320,10 @@ Our web application is incredibly complex and runs many files to properly. Below
     This endpoint checks if a user exists in the database. It also sends the user inputs to `input_sanitization.py`, and subsequently passes the password through a hash function before sending them to `/items/USER` in Directus with a GET request. If the password hash doesn't match with the one stored in the database, the login fails, and if the username does not exist in the database, then the login also fails. If the passwords match, then `session["user_id"]` and `session["username"]` are set from the U_ID and U_Username pulled from the database. 
 
 - `jukeboxd/FrontEnd/backend/routes/data.py`  
-  Simple passthrough API routes that expose raw Directus collections such as artists, albums, users, reviews, and songs.
+  This file connects to the Directus API endpoints, and sets a route for the rest of the application to connect to the basic Directus endpoints. This file has dependencies on `python.requests` and `jsonify`. This file is stateless and creates a function for each API endpoint. For example, `get_users()` retrieves the Directus endpoint `/items/USER` for use by the frontend. 
 
 - `jukeboxd/FrontEnd/backend/routes/profile.py`  
-  Profile API route for reading profile data and updating allowed profile fields like first and last name.
+  This file creates the backend logic for the user profile page. This file uses both GET and PATCH methods to pull from and update the database. This file checks for session state set with `user_id` and `username`. If there is no path set, and if there is a set This file is dependent on `python.flask` and `python.requests`. 
 
 - `jukeboxd/FrontEnd/backend/routes/reviews.py`  
   Largest route module. It powers the review feed, related review search, likes, comments, user review lists, and review creation.
@@ -353,7 +357,7 @@ Our web application is incredibly complex and runs many files to properly. Below
 - `jukeboxd/FrontEnd/backend/helpers/review_normalization.py`  
   Data-shaping layer that merges raw Directus review data with song, album, artist, and relationship tables so the frontend gets consistent feed/search/profile review objects.
 
-### Templates
+### /TEMPLATES
 
 #### `jukeboxd/FrontEnd/templates`
 
@@ -392,7 +396,7 @@ Our web application is incredibly complex and runs many files to properly. Below
 - `jukeboxd/FrontEnd/templates/components/profile_friends_modal.html`  
   Partial template for the popout friends-list modal on the profile page.
 
-### Frontend Styles
+### /STATIC/CSS
 
 #### `jukeboxd/FrontEnd/static/css`
 
@@ -409,7 +413,7 @@ Our web application is incredibly complex and runs many files to properly. Below
   Currently empty placeholder stylesheet. It appears to have been reserved for layout-specific styles but is not active right now.
 
 
-### Frontend JavaScript
+### /STATIC/JS
 
 #### `jukeboxd/FrontEnd/static/js/app`
 
@@ -805,4 +809,6 @@ FROM user u
 JOIN review r
 	ON u.U_Username = r.U_Username;
 ```
+
+
 
