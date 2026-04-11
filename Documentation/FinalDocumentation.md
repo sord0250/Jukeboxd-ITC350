@@ -294,6 +294,8 @@ Our web application is incredibly complex and runs many files to properly. Below
 
 ### /BACKEND/ROUTES
 
+This section of the code deals with the Directus connections. It establishes routes to and from the database, and allows for a smooth transition of information between the database and frontend. Almost all of the files in this section are dependent on one or more files in `/backend/helpers`.
+
 #### `jukeboxd/FrontEnd/backend`
 
 - `jukeboxd/FrontEnd/backend/config.py`  
@@ -376,11 +378,37 @@ Our web application is incredibly complex and runs many files to properly. Below
 
 ### /BACKEND/HELPERS
 
+This section of the code contains essential functions for the server to run. It contains the logic for how the information retreived from the database is modified and dealt with. 
 
 #### `jukeboxd/FrontEnd/backend/helpers`
 
 - `jukeboxd/FrontEnd/backend/helpers/common.py`  
-  Shared backend utilities for extracting Directus payloads, filtering user reviews, normalizing item types, coercing like counts, and surfacing API error messages.
+  This file holds a collection of small, stateless helper functions. These functions are commonly used accross the `/route` files. This file contains no routes, no session interaction, and it creates no state. The common functions extract Directus payloads, filter user reviews, normalize item types, and display API error messages. This file's only dependency is `DIRECTUS_URL` from `backend.config`. 
+
+  - `_extract_payload_list()`  
+
+    This function normalizes a Directus response as a list. It returns the list and a container key so the original response can be reconstructed if needed.
+
+  - `_filter_user_reviews()`  
+
+    This function filters a review based on a given username or user ID. This function also keeps the original payload shape on return.
+
+  - `_extract_api_error()`  
+
+    This function deals with Directus error messages. It returns Directus error messages in a human readable format error based on where the errors are located (`message`, `detail`, `error`, `errors`, `extensions`). It returns the first error found, or `default_message` if none can be extracted.
+
+  - `_coerce_like_count()`  
+
+    This function converts the like count to an integer. It returns 0 on failure or null input.
+
+  - `_normalize_search_item_type()`  
+
+    This function normalizes a search string to either `"song"`, `"album"`, or `"artist"`. It makes the input lowercase and prefix-matches. It also returns the lowercased value unchanged if no match is found.
+
+  - `_resolve_media_url()`  
+
+    This function normalizes media URLs. This function skips absolute URLs, and attaches `DIRECTUS_URL` to root-relative paths. 
+    
 
 - `jukeboxd/FrontEnd/backend/helpers/comments.py`  
   Comment helper layer that loads comment rows from Directus, normalizes them, builds preview lists, and posts new comments.
