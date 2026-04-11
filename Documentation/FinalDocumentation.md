@@ -242,6 +242,18 @@ To see the queries that are run to create the views, click on the hyperlinks abo
 
 ## API DOCUMENTATION
 
+Our database is being hosted on a Digital Ocean Droplet that our entire team had access to. To make our database available online, we downloaded Directus, a headless content management system. This CMS automatically wraps our database and generates a RESTful API, so we didn't need to create the REST API ourselves. This led to other issues, but we were able to successfully overcome all of them and create a working API for our jukeboxd database. 
+
+### /LOGOUT
+
+This API endpoint clears the current user's session data and redirects them to the root URL. The user is automatically logged out because their user_id and username that are being stored in the Flask session are deleted. 
+
+### /API 
+
+This is 
+
+![directusExample](./directusExtensionExample.png)
+
 ## FRONT-END DOCUMENTATION
 
 ## DESIGN CHANGES
