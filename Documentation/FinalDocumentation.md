@@ -282,25 +282,175 @@ Here is an example of a Directus view extension.
 
 ## FRONT-END DOCUMENTATION
 
-### BACKEND ROUTES
+Our web application is incredibly complex and runs many files to properly. Below are detailed descriptions of each file necessary for our frontend.
 
-There are some URL routes that are explicitly defined in our code ([auth.py](https://github.com/sord0250/Jukeboxd-ITC350/blob/main/jukeboxd/FrontEnd/backend/routes/auth.py)). Below are the URL routes we created for the backend to function. 
+### `jukeboxd/FrontEnd` (parent directory)
 
-#### /logout 
+- `jukeboxd/FrontEnd/app.py`  
+  Our frontend is running through a python flask container. `app.py` creates the core functionality of our frontend. It establishes the API routes for the rest of the functions. This file serves as the bridge between the database and the python files we created for the rest of the frontend to work. The only dependency we used for this file was `python.flask`. This file pulls the global variables used throughout the program from `config.py`. The only function this file uses is `{"client_config": {"DIRECTUS_URL": DIRECTUS_URL}}`, which injects the DIRECTUS_URL into all `.py` functions used in the program. 
+
+
+#### `jukeboxd/FrontEnd/backend`
+
+- `jukeboxd/FrontEnd/backend/config.py`  
+  This file pulls all secret values and environment variables from `.env`. It also defines the Directus base URL, and stores size limits for `input_sanitization.py`. This file is dependent on `os` to load the `.env` variables, and `pathlib.Path` to resolve the file paths used in the web program. This file creates no UI or session state, but it does set environmental state based on information in the `.env` file.
+
+#### `jukeboxd/FrontEnd/backend/routes`
+
+- `jukeboxd/FrontEnd/backend/routes/pages.py`  
+  This file is used to generate the HTML pages for the frontend. These URL endpoints are all accessable to a typical user: `/`, `/search`, `/profile`, `/profile/<username>`, `/add`, `/login`, `/register`, and `/stats`. This file is dependent on `python.flask` and `backend.helpers.input_sanitization`. This page is statless as its purpose is to render the pages. This file uses the `render_template()` function to render the pages, and `profile_by_username()` to generate a specialized user profile page for each user. 
+
+- `jukeboxd/FrontEnd/backend/routes/auth.py`  
+  This file creates the login, registration, and logout functions and establishes their connection with the server. It creates a connection with the Directus API, and sets session state `session["user_id"]` and `session["username"]` with the `login` function. It clears the session state in the `logout` function. The register `function` updates the database with a new user. This file has dependencies on `datetime`, `bcrypt`, `requests`, and `flask`. 
+
+  - `/logout`
 
 This endpoint clears the current user's session data and redirects them to the root URL. It uses a GET method to call `session.clear()`. The user is automatically logged out because their user_id and username that are being stored in the Flask session are deleted. This doesn't interact with Directus at all. 
 
-#### /api/register
+  - `/api/register`   
 
 This endpoint uses a POST method to register a new user in the database. This endpoint uses the parameters firstName, lastName, username, email, and password to create the new user. This route first sends the input parameters through `input_sanitization.py`. If an input does not pass an `input_sanitization.py`, it is set as NULL, and the user is prompted to insert a valid input instead. Then, all passwords are hashed with `bcrypt.hashpw`. Then, a POST is sent to the Directus endpoint `/items/USER` with the user's information. 
 
-#### /api/login
+  - `/api/login`
 
 This endpoint checks if a user exists in the database. It also sends the user inputs to `input_sanitization.py`, and subsequently passes the password through a hash function before sending them to `/items/USER` in Directus with a GET request. If the password hash doesn't match with the one stored in the database, the login fails, and if the username does not exist in the database, then the login also fails. If the passwords match, then `session["user_id"]` and `session["username"]` are set from the U_ID and U_Username pulled from the database. 
 
+- `jukeboxd/FrontEnd/backend/routes/data.py`  
+  Simple passthrough API routes that expose raw Directus collections such as artists, albums, users, reviews, and songs.
+
+- `jukeboxd/FrontEnd/backend/routes/profile.py`  
+  Profile API route for reading profile data and updating allowed profile fields like first and last name.
+
+- `jukeboxd/FrontEnd/backend/routes/reviews.py`  
+  Largest route module. It powers the review feed, related review search, likes, comments, user review lists, and review creation.
+
+- `jukeboxd/FrontEnd/backend/routes/friendships.py`  
+  Friendship API routes for loading friendship state, sending requests, accepting requests, canceling or declining requests, and removing friends.
+
+#### `jukeboxd/FrontEnd/backend/helpers`
+
+- `jukeboxd/FrontEnd/backend/helpers/__init__.py`  
+  Package marker for backend helper modules.
+
+- `jukeboxd/FrontEnd/backend/helpers/common.py`  
+  Shared backend utilities for extracting Directus payloads, filtering user reviews, normalizing item types, coercing like counts, and surfacing API error messages.
+
+- `jukeboxd/FrontEnd/backend/helpers/comments.py`  
+  Comment helper layer that loads comment rows from Directus, normalizes them, builds preview lists, and posts new comments.
+
+- `jukeboxd/FrontEnd/backend/helpers/friendships.py`  
+  Friendship-specific helper layer for reading friendship rows, normalizing friend data, ordering friendship pairs, and looking up users in friendships.
+
+- `jukeboxd/FrontEnd/backend/helpers/input_sanitization.py`  
+  Server-side sanitization and validation for names, usernames, emails, passwords, comments, reviews, ratings, and review payload construction.
+
+- `jukeboxd/FrontEnd/backend/helpers/payloads.py`  
+  Convenience wrapper functions for fetching the Directus payload bundles needed by feed, search, and profile review normalization.
+
+- `jukeboxd/FrontEnd/backend/helpers/profile.py`  
+  Profile helper functions for looking users up by username, serializing user objects, and translating Directus profile-update errors into friendlier messages.
+
+- `jukeboxd/FrontEnd/backend/helpers/review_normalization.py`  
+  Data-shaping layer that merges raw Directus review data with song, album, artist, and relationship tables so the frontend gets consistent feed/search/profile review objects.
+
+### Templates
+
+#### `jukeboxd/FrontEnd/templates`
+
+- `jukeboxd/FrontEnd/templates/index.html`  
+  Home feed page. It renders the welcome section, feed filter buttons, feed list, and back-to-top button.
+
+- `jukeboxd/FrontEnd/templates/search.html`  
+  Search page. It renders the live search UI and the modal that shows top related reviews for a selected item.
+
+- `jukeboxd/FrontEnd/templates/add.html`  
+  Add-review page. It contains the search picker, star rating controls, review text area, form message, and review toast.
+
+- `jukeboxd/FrontEnd/templates/login.html`  
+  Login form page for email and password sign-in.
+
+- `jukeboxd/FrontEnd/templates/register.html`  
+  Registration form page for first name, last name, username, email, and password.
+
+- `jukeboxd/FrontEnd/templates/profile.html`  
+  Profile page layout. It shows profile summary info, friends, incoming requests, account actions, and the user’s review list.
+
+- `jukeboxd/FrontEnd/templates/stats.html`  
+  Placeholder page for future stats or messages work. Right now it only renders a very minimal page shell.
+
+#### `jukeboxd/FrontEnd/templates/components`
+
+- `jukeboxd/FrontEnd/templates/components/navbar.html`  
+  Shared top navigation bar used across the site, including the home logo, search/add links, and profile/account area.
+
+- `jukeboxd/FrontEnd/templates/components/scripts.html`  
+  Shared script include file that loads the app’s core JavaScript modules in order.
+
+- `jukeboxd/FrontEnd/templates/components/profile_edit_modal.html`  
+  Partial template for the edit-profile modal, including locked username/email fields and editable first/last name fields.
+
+- `jukeboxd/FrontEnd/templates/components/profile_friends_modal.html`  
+  Partial template for the popout friends-list modal on the profile page.
+
+### Frontend Styles
+
+#### `jukeboxd/FrontEnd/static/css`
+
+- `jukeboxd/FrontEnd/static/css/base.css`  
+  Main stylesheet for the app. It contains the global layout, navbar, feed cards, search UI, add-review form, profile layout, modals, and responsive styling.
+
+- `jukeboxd/FrontEnd/static/css/profile-friendships.css`  
+  Focused stylesheet for friendship and friends-list UI on the profile page.
+
+- `jukeboxd/FrontEnd/static/css/components.css`  
+  Currently empty placeholder stylesheet. It appears to have been reserved for shared component styles but is not active right now.
+
+- `jukeboxd/FrontEnd/static/css/layout.css`  
+  Currently empty placeholder stylesheet. It appears to have been reserved for layout-specific styles but is not active right now.
 
 
-### FRONTEND ROUTES
+### Frontend JavaScript
+
+#### `jukeboxd/FrontEnd/static/js/app`
+
+- `jukeboxd/FrontEnd/static/js/app/boot.js`  
+  App bootstrapper. It calls all page initialization functions after `DOMContentLoaded`.
+
+- `jukeboxd/FrontEnd/static/js/app/core.js`  
+  Small shared utility layer for checking login state, reading/writing localStorage identity, and logging out.
+
+- `jukeboxd/FrontEnd/static/js/app/api.js`  
+  Shared frontend API wrapper for search, feed, reviews, comments, profiles, friendships, and likes.
+
+- `jukeboxd/FrontEnd/static/js/app/navbar.js`  
+  Navbar behavior module. It fills the account dropdown with login/register or logout actions depending on local login state.
+
+- `jukeboxd/FrontEnd/static/js/app/reviews.js`  
+  Shared review UI engine. It normalizes review objects, builds feed cards, supports likes, opens the comment modal, formats ratings, and generates profile links from usernames.
+
+#### `jukeboxd/FrontEnd/static/js/app/pages`
+
+- `jukeboxd/FrontEnd/static/js/app/pages/auth.js`  
+  Login and registration page logic, including form validation, API calls, and localStorage session setup after login.
+
+- `jukeboxd/FrontEnd/static/js/app/pages/feed.js`  
+  Home feed page controller. It loads the feed, handles infinite scrolling, supports the all/friends/song/album/artist filters, and renders empty-state messages.
+
+- `jukeboxd/FrontEnd/static/js/app/pages/search.js`  
+  Search page controller. It performs live search queries, opens the detail modal, and loads the top related reviews for the selected item.
+
+- `jukeboxd/FrontEnd/static/js/app/pages/add.js`  
+  Add-review page controller. It handles search selection, star ratings, character counts, and posting new reviews.
+
+- `jukeboxd/FrontEnd/static/js/app/pages/profile.js`  
+  Main profile page controller. It loads profile data and review history, wires in like/comment behavior, and manages the edit-profile modal.
+
+- `jukeboxd/FrontEnd/static/js/app/pages/profile_friendships.js`  
+  Friendship-specific profile controller. It renders friends, requests, connection states, the friends modal, and the friend-action buttons.
+
+
+
+
 
 
 ## APPENDIX 1: LOW-FIDELITY PAPER PROTOTYPES
