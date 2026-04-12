@@ -550,26 +550,43 @@ This section of the code contains essential functions for the server to run. It 
 
 #### `jukeboxd/FrontEnd/templates`
 
+This folder holds the html, js, and css files that form the skeleton of our frontend. 
+
 - `jukeboxd/FrontEnd/templates/index.html`  
-  Home feed page. It renders the welcome section, feed filter buttons, feed list, and back-to-top button.
+  This file renders the home page of the website. It uses `Jinja2` to interface with our flask container. The home page is also where the feed is displayed. It renders the welcome section, feed filter buttons, feed list, and back-to-top button. It also renders the `navbar` and `scripts` from our `/templates/components` folder. 
+
+![index.html](./index.html.png)
 
 - `jukeboxd/FrontEnd/templates/search.html`  
   Search page. It renders the live search UI and the modal that shows top related reviews for a selected item.
 
+![search.html](./search.html.png)
+
 - `jukeboxd/FrontEnd/templates/add.html`  
   Add-review page. It contains the search picker, star rating controls, review text area, form message, and review toast.
+
+![add.html](./add.html.png)
 
 - `jukeboxd/FrontEnd/templates/login.html`  
   Login form page for email and password sign-in.
 
+![login.html](./login.html.png)
+
 - `jukeboxd/FrontEnd/templates/register.html`  
   Registration form page for first name, last name, username, email, and password.
+
+![register.html](./register.html.png)
 
 - `jukeboxd/FrontEnd/templates/profile.html`  
   Profile page layout. It shows profile summary info, friends, incoming requests, account actions, and the user’s review list.
 
+![profile.html](./profile.html.png)
+
 - `jukeboxd/FrontEnd/templates/stats.html`  
   Placeholder page for future stats or messages work. Right now it only renders a very minimal page shell.
+
+![stats.html](./stats.html.png)
+
 
 #### `jukeboxd/FrontEnd/templates/components`
 
