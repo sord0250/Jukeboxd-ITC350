@@ -411,22 +411,140 @@ This section of the code contains essential functions for the server to run. It 
     
 
 - `jukeboxd/FrontEnd/backend/helpers/comments.py`  
-  Comment helper layer that loads comment rows from Directus, normalizes them, builds preview lists, and posts new comments.
+  This file fetches, creates, and summarizes comments. It pulls comments from Directus based on a review ID or a username. This file has dependencies on `datetime` and `requests`, as well as our own `backend.config`, `helpers.common`, and `helpers.input_sanitization` files. This file creates no session state, and it doesn't directly affect the UI, but it does all of the backend work for comments used in the `backend.routes` folder. 
+
+
+  - `_fetch_comment_items()`  
+    This fucntion pulls comments from Directus, and then normalizes each row into a consistent 
+    shape. This function also filters out empty comments and reports a `RuntimeError` instead of returning an empty list.
+
+  - `_get_review_comments()`  
+    This function returns the comment list of a specific review and sorts them 
+    with the newest comments first.
+
+  - `_add_review_comment()`  
+    This function creates a new comment on a review. It first sanitizes the comment text and username, then POSTs a new comment record to Directus with a server-generated timestamp. After the POST, Directus returns the normalized comment to this function, but sends a `RuntimeError` if the POST fails.
+
+  - `_get_comment_summary_map()`  
+    This function takes a list of review IDs and returns a dictionary. In the returned dictionary, each key is a review ID and each value contains a comment count and a  list of the most recent comments up to a set `preview_limit`. This function fetches all comments at once and distributes them between their respective reviews.
+
+  - `_attach_comment_summaries()`  
+    This function connects the `comment_count` and `comments_preview` fields to each review. It normalizes the comment summaries, and preserves the original payload shape when it returns to Directus. This is also the main function called by the route files.
+
 
 - `jukeboxd/FrontEnd/backend/helpers/friendships.py`  
-  Friendship-specific helper layer for reading friendship rows, normalizing friend data, ordering friendship pairs, and looking up users in friendships.
+  This file reads friendship rows, normalizes friend data, orders friendship pairs, and looks up users in friendships. This file is dependent on `python.requests`, our `backend.config`, and our `helpers.common` files. This file doesn't create routes or session state, and is a backend specific file used by `backend.routes` to smoothly integrate with all friendship information with the frontend. This function is also responsible for defining the variables `FRIENDSHIP_FIELDS` and `FRIENDSHIP_USER_FIELDS`. 
+
+   - `_normalize_friendship_pair()`  
+    This function sorts two user IDs into a low to high order. This verifies that any friendship 
+    between users A and B is  stored and looked up the same way independently of the user who initiated it.
+
+  - `_normalize_friendship_record()`  
+    This function converts a raw Directus friendship result into a dictionary with coerced int IDs and a status string.
+
+  - `_serialize_friend_user()`  
+    This function converts a raw Directus user result into a dictionary with only relevant friendship display fields.
+
+  - `_fetch_all_friendships()`  
+    This function fetches up to 1000 friendship records from Directus, normalizes them, and 
+    filters out all freindships with a null `F_ID`.
+
+  - `_fetch_friendship_by_id()`  
+    This function fetches a single friendship by ID.
+
+  - `_fetch_friend_user_lookup()`  
+    This function fetches up to 1000 user records from Directus and returns them as a 
+    dictionary. This dic uses `U_ID` as the key and the dic is used to resolve user details from a friendship record without needing to make a new request for every user.
+
+  - `_friendship_involves_user()`  
+    This function returns `True` if the given user ID is in a friendship record.
+
+  - `_get_other_friendship_user_id()`  
+    This function shows the other user ID in a friendship record when `_friendship_involves_user()` shows a user does indeed have a friendship. These two functions are usually used together.
+
+  - `_find_friendship_between()`  
+    This function searches for if a friendship exists between users A and B.
 
 - `jukeboxd/FrontEnd/backend/helpers/input_sanitization.py`  
-  Server-side sanitization and validation for names, usernames, emails, passwords, comments, reviews, ratings, and review payload construction.
+  This file sanitizes names, usernames, emails, passwords, comments, reviews, ratings, and review payload construction. It depends on `html`, `re`, `datetime`, and `backend.config`. It has no routes and creates no session or UI state. This function does define the `_USERNAME_PATTERN`, `_EMAIL_PATTERN`, and `_INLINE_WHITESPACE_PATTERN` regex patterns. This function first creates a class that checks for style and script tags. 
+
+  - `_strip_html_markup()`  
+    This function identifies HTML script and style tags and removes them.
+
+  - `_strip_control_characters()`  
+    This function removes control characters and non-printable characters from inputs.
+
+  - `_normalize_text_whitespace()`  
+    This function reduces inputted whitespace to a single newline.
+
+  - `_sanitize_plain_text()`  
+    The 3 above functions are run simultaneously and also sets a limit of `max_length` characters. This funcition is used in several subsequent functions to sanitize new usernames, existing usernames, emails, passwords, comments, and review text/ratings.
+
+  - `_sanitize_positive_int()`  
+    This function forces inputs to positive ints, and it is generally used to validate IDs.
+
+  - `_build_sanitized_review_payload()`  
+    This function is one of the more complex ones. It sanitizes all input fields and validates that only one `S_ID`, `AL_ID`, or `ART_ID` is provided. It then returns a review payload to POST to Directus. This function also appends a date to the reviews for sorting. 
 
 - `jukeboxd/FrontEnd/backend/helpers/payloads.py`  
-  Convenience wrapper functions for fetching the Directus payload bundles needed by feed, search, and profile review normalization.
+  This file holds several wrapper functions for fetching the Directus payload bundles and view extensions needed for feed, search, and profile review normalization. It is only dependent on `requests` and `backend.config`. It has no routes, no state, and no logic other than HTTP requests and returning raw JSON. 
+
+  - `_fetch_review_reference_payloads()`  
+    This function fetches all six database tables needed to build a complete review(`REVIEW`, `SONG`, `ALBUM`, `ARTIST`, `MAKES_SONG`, and `MAKES_ALBUM`). It then returns their raw JSON responses as a tuple.
+
+  - `_fetch_search_reference_payloads()`  
+    This function fetches `SONG`, `ALBUM`, `ARTIST`, `MAKES_SONG`, and `MAKES_ALBUM`. It reduces the size of `SONG` and `ALBUM` to make searches more suited for display. It returns a five-item tuple that contains results of a search. 
+
+  - `_fetch_review_view_payloads()`  
+    This function fetches our Directus views (`song_review`, `album_reviews`, and `artist_review`) and returns their raw JSON responses as a tuple. 
 
 - `jukeboxd/FrontEnd/backend/helpers/profile.py`  
-  Profile helper functions for looking users up by username, serializing user objects, and translating Directus profile-update errors into friendlier messages.
+  This function holds profile helper functions for looking users up by username, serializing user objects, and translating Directus profile-update errors into friendlier messages. It has 
+  no routes and creates no session or UI state. It depends on `requests` and `helpers.common`. 
+
+    - `_serialize_profile_user()`  
+    This function converts a Directus user record into a dictionary containing only the fields relevant to profile display and editing (`U_ID`, `U_FName`, `U_LName`, `U_Username`, `U_Email`, and `U_DateCreated`). 
+
+  - `_get_user_by_username()`  
+    This function connects to Directus and pulls a single user based on a given username. Directus returns the raw record and raises a `RuntimeError` on a failed request. 
+
+  - `_profile_update_error_message()`  
+    This function translates `_extract_api_error` for easier readability. It detects permission errors, duplicate username conflicts, and duplicate email conflicts in the Directus response and returns an easily readable message for each. 
+
+  - `_is_user_field_taken()`  
+    This function is used to detect duplicate username or email before attempting an update.It works by querying Directus for any user with a matching value for a given field, and then checks whether that user is someone other than the current user. 
 
 - `jukeboxd/FrontEnd/backend/helpers/review_normalization.py`  
-  Data-shaping layer that merges raw Directus review data with song, album, artist, and relationship tables so the frontend gets consistent feed/search/profile review objects.
+  This file merges raw Directus review data with song, album, artist, and relationship tables so the frontend gets consistent feed/search/profile review objects. This file is dependent on several `helpers.common` functions. 
+
+  This file is very large as it solves some problems we had in creating and storing reviews. Directus stores reviews, songs, albums, artists, and made-by tables separately. This file joins them and resolves artist names, items they have made, and review type for every review before returning a single normalized list.
+
+    - `_build_artist_name_maps()`  
+    This function is the lookup builder. It uses `MAKES_SONG` and `MAKES_ALBUM` to build two dictionaries. They map song IDs and album IDs to their respective artists. Songs with no connected artist in `MAKES_SONG` use their album's artist to prevent errors. These dics are built once and reused across all normalization functions. 
+
+  - `_resolve_artist_names()`  
+    This function returns the artist name for a single review by trying song, then album, then direct artist ID in order, and returning the first match found. 
+
+  - `_build_review_enrichment()`  
+    This function builds a dictionary using `review_ID` as the key. This function then pulls the following display fields for each review: `num_likes`, `artwork_url`, `artwork_alt`, and `artist_names`. Used by `_normalize_feed_payload` to avoid repeating the same lookups per row.
+
+  - `_normalize_feed_payload()`  
+    This function normalizes the `feed_review` Directus view. It enriches each row with artwork and artist names that are resolved from the reference tables. Rows with no matching `review_ID` receive null artwork and artist fields instead of being dropped. 
+
+  - `_normalize_search_results()`  
+    This function normalizes search results by resolving each item's type, title, artwork, other details like artist name for songs and albums or genre for artists. It handles songs, albums, and artists in separate branches. 
+
+  - `_build_review_view_maps()`  
+    This function indexes the Directus views `song_review`, `album_reviews`, and`artist_review` by review ID so they can be used if the main `REVIEW` table contains missing fields.
+
+  - `_normalize_user_profile_reviews()`  
+    This function is the most complex in the file. It normalizes a user's specific review list by joining on all reference tables and the three review views. It determines the `review_type` by checking if `S_ID`, `AL_ID`, or `ART_ID` is set, then resolves the title, album name, artist name, and artwork accordingly. It returns normalized rows that are sorted with the newest first.
+
+  - `_normalize_review_records()`  
+    This function normalizes reviews for feed, song, album, and artist review endpoints. It joins reviews against songs, albums, and artists, resolves all display fields, and returns a normalized list sorted with the newest first. 
+
+  - `_filter_normalized_reviews()`  
+    This function filters a prenormalized review list into a single `review_type`. It keeps the original payload shape on return. 
 
 ### /TEMPLATES
 
