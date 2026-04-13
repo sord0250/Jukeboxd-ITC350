@@ -41,7 +41,7 @@ marp: false
 * [FRONT-END DOCUMENTATION](#front-end-documentation)
   * [/BACKEND](#backend)
   * [/TEMPLATES](#templates)
-  * [/STATIC/JS](#static-js)
+  * [/STATIC/JS](#staticjs)
 * [APPENDIX 1](#appendix-1-low-fidelity-paper-prototypes)
 * [APPENDIX 2](#appendix-2-sql-scripts)
   * [CREATE STATEMENTS](#create-tables)
@@ -602,7 +602,7 @@ This folder holds the html, js, and css files that form the skeleton of our fron
   This file creates a template to display a full friends list modal on the profile page. This file only serves to display results of `refreshFriendshipData()`. 
 
 
-### /STATIC/JS
+### STATIC/JS
 
 #### `jukeboxd/FrontEnd/static/js/app`
 
