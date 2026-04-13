@@ -895,54 +895,79 @@ This folder holds the html, js, and css files that form the skeleton of our fron
   This file renders and controls the profile page. It loads profile data and review history, wires in like/comment behavior, and manages the edit-profile modal.
 
   - `initProfilePage()`  
-    This function initializes the profile page. After verifying that the user is logged in, it FETCHes the profile and user reviews at the same time from our `/api/profile` and `/api/user_reviews` endpoints. It then renders the profile summary and review list. After profile data is FETCHed, it starts the friendship controller. It also creates the edit profile modal and like/comment handlers.
+    This function initializes the profile page. After verifying that the user is logged in, it FETCHes the profile and user reviews at the same time from our `/api/profile` and `/api/user_reviews` endpoints. It then renders the profile summary and review list. After profile data is FETCHed, it starts the friendship controller. This function also creates the edit profile modal and like/comment handlers.
 
   - `getViewedUsername()`  
-    This function returns the username of the profile being viewed, read from 
-    `document.body.dataset.username`.
+    This function returns the username of the profile currently being viewed, which is pulled from the DOM.
 
   - `formatPossessiveHandle()`  
-    This function returns a possessive username string for display (e.g. 
-    `@james'` or `@james's`) based on whether the username ends in "s". Returns 
-    "this user's" if no username is available.
+    This function returns a possessive case username string for readability. It adds a `'s` to the end of the username or just a `'`, depending on whether the username ends in `s` or not. It also returns "this user's" if no username is available.
 
   - `updateProfileReviewsSubtitle()`  
-    This function updates the reviews section subtitle. Shows "your most recent 
-    reviews" on own profile and a possessive handle for other profiles.
+    This function updates the subtitles of the reviews section. It displays "your most recent reviews" to the logged in user's own profile and a possessive handle for visiting another user's profiles.
 
   - `setEditProfileMessage()`  
-    This function sets the message text inside the edit profile modal. Accepts an 
-    `isError` flag to style it as an error.
+    This function sets the text content inside the edit profile modal.
 
   - `renderProfileReviews()`  
-    This function renders the profile's review list into `#profile-review-list` 
-    using `createFeedCard()` and updates the review count. Shows an empty state 
-    message if there are no reviews.
+    This function renders the review list of the active profile into `#profile-review-list` using `createFeedCard()`. Then it updates the review count. It shows an empty message if there are no reviews.
 
   - `renderProfileLoadError()`  
-    This function renders an error state across the entire profile page when the 
-    initial profile load fails. It fills all profile header fields with fallback 
-    values and shows an error card in the review list.
+    This function creates an error across the entire profile page if the initial profile load fails. It fills all profile header fields with fallback values and shows an error in the review list. 
 
   - `openEditProfileModal()`  
-    This function opens the edit profile modal and pre-fills all four fields from 
-    `currentProfile`. Re-enables the save button and clears any previous message.
+    This function opens the edit profile modal and prefills all four fields with results pulled from `currentProfile`. Then the save button in enabled and previous messages are cleared.
 
   - `closeEditProfileModal()`  
-    This function hides the edit profile modal, re-enables the save button, clears 
-    the message, and returns focus to the edit button. Also triggered by backdrop 
-    click and Escape key.
+    This function hides the edit profile modal, un-disables the save button, clears the profile message, and sets focus on the edit button. This function is triggered by backdrop click and Escape key. 
 
   - `refreshProfileReviews()`  
-    This function re-fetches the user's reviews from `/api/user_reviews` and 
-    rerenders the review list. Called after a successful profile edit to reflect 
-    any display name changes.
+    This function refetches the user's reviews from the `/api/user_reviews` endpoint and rerenders the review list. This function is automatically called after a profile is edited to show display name changes.
 
 - `jukeboxd/FrontEnd/static/js/app/pages/profile_friendships.js`  
-  Friendship-specific profile controller. It renders friends, requests, connection states, the friends modal, and the friend-action buttons.
+  This is the controler of user friendships. It renders friends, requests, connection states, the friends modal, and the friend-action buttons. It is also initialized by `profile.js`.
 
+  - `createProfileFriendshipController()`  
+    This function initializes all friendship DOM elements for the profile page. It creates the friends modal open/close, friendship action buttons, incoming request buttons, and friend button navigation. It returns the `{refreshFriendshipData, renderFriendshipLoadError}` JSON obj for `profile.js`.
 
+  - `setFriendshipMessage()`  
+    This function sets the friendship status text content. 
 
+  - `openFriendsModal()`  
+    This function unhides the friends list modal and adds `modal_open` to the body.
+
+  - `closeFriendsModal()`  
+    This function hides the friends list modal and removes `modal_open` from the body. Then it sets focus on the friends modal button. It can also be triggered by backdrop click and the esc key.
+
+  - `createProfileConnectionMarkup()`  
+    This function displays a single connection item as an HTML string. It optionaly accepts meta text and actions markup that are displayed with the username.
+
+  - `createFriendButtonMarkup()`  
+    This function renders a friend as a clickable button with their avatar and username. Clicking the friend button redirects the user to their friend's profile.
+
+  - `renderFriendsList()`  
+    This function renders all the user's friends into the friends modal and updates the friend count, summary, and preview text. It displays empty messages for the user's own profile, with a slightly different message for other profiles.
+
+  - `renderIncomingRequests()`  
+    This function renders the list of incoming friend requests for the user's profile. Each request shows the username of the requester with both an accept and a decline button. 
+
+  - `renderFriendshipActions()`  
+    This function renders the correct friendship action buttons for a viewed profile depending on the current relationship of the user and the owner of the viewed profile. There are four states that can be displayed: accepted with a `remove friend` button, pending request with a `cancel request` button, incoming pending with an `accept/decline` button, or not friends with an `add friend` button.
+
+  - `renderFriendshipData()`  
+    This function sends FETCHed friendship data to the correct render functions. In the user's personal profile, it renders the friends list and incoming requests. In other profiles, it renders the friends list and friendship action buttons.
+
+  - `renderFriendshipLoadError()`  
+    This function renders an error state across friendship DOM elements. In the user's own profile, it displays the requests list as an error message. In other profiles, it displays the friendship status and action area as an error message.
+
+  - `refreshFriendshipData()`  
+    This function FETCHes fresh friendship data from the `/api/friendships?username=` endpoint and rerenders all friendship UI. This is called when the page loads and after every friendship action. 
+
+  - `handleFriendshipAction()`  
+    This function handles all friendship button clicks `(add friend, accept, cancel, decline, and remove)`. It disables all buttons in the action group while `data-is-pending` is set to prevent multiple submissions at once. Then it calls the corresponding API function and refreshes friendship data on completion.
+
+  - `handleFriendButtonNavigation()`  
+    This function navigates to a friend's profile page when their respective button is clicked in the friends list modal.
 
 
 
