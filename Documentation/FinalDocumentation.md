@@ -687,10 +687,10 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function returns true if the comments modal is open and contains a specific `reviewId`.
 
   - `syncReviewCommentState()`  
-    This function updates comment data in both `allFeedReviews` and a page-specific review list every time a comment is posted. It then rerenders the page. 
+    This function updates comment data in both `allFeedReviews` and the page review list every time a comment is posted. It then rerenders the page after syncing the user and database feeds.  
 
   - `getLikedReviewStorageKey()`  
-    This function returns the `username` stored in the session state and returns `NULL` if no user is logged in.
+    This function returns the `liked_reviews:<username>` stored in `localStorage` and returns `NULL` if no user is logged in.
 
   - `getLikedReviewIds()`  
     This function reads and parses the user's liked reviewId list from `localStorage`. 
@@ -708,18 +708,18 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function updates the like count for a specific review in `allFeedReviews`.
 
   - `updateReviewLikeCountInList()`  
-    This function updates the `allFeedReviews` list by creating a new review list with the like count updated for a specific review. It returns a JSON obj with `{num_likes, review_num_likes, R_NumOfLikes}`. 
+    This function updates the like count for a review in the page review list. It creates a new review list with an updated like count for a specific review. This function increases the like count of `num_likes`, `review_num_likes`, and `R_NumOfLikes`, updates the page review list and returns it.
 
   - `updateFeedReviewComments()`  
     This function updates the comment preview and count for a specific review in `allFeedReviews` 
-    in place. It also returns a JSON obj with `{num_likes, review_num_likes, R_NumOfLikes}`.
+    in place. It also returns a review list with `{num_likes, review_num_likes, R_NumOfLikes}`.
 
   - `updateReviewCommentsInList()`  
     This function returns a new review list with comment data updated for a specific review. 
     It is used to update page review lists without directly changing them.
 
   - `escapeHtml()`  
-    This function escapes HTML special characters in a string to stop XSS. It doesn't return anything, it just edits the inputs. 
+    This function escapes HTML special characters in a string to stop XSS and returns the escaped string. 
 
   - `normalizeReviewComment()`  
     This function converts a comment record into a normalized form, whether it came from Directus or the user input form. 
@@ -737,10 +737,10 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function transforms a comment into an HTML string and returns it. It can include a formatted timestamp.
 
   - `ensureReviewCommentsModal()`  
-    This function verifies that the review comments modal exists, and if not, then it creates the comments modal and appends it to `<body>`. It is then cached and returned. All other calls return the cached reference. 
+    This function verifies that the review comments modal exists, and if not, then it creates a DOM obj for the comments modal and attatches it to the HTML page `<body>`. It creates event handlers (close button, backdrop click, esc key, and form submit) and stores the newly created modal in `reviewCommentsModalElements`. The new modal is then returned.
 
   - `closeReviewCommentsModal()`  
-    This function removes the comments modal, clears active state, increments the reviewId, and rerenders the review list. 
+    This function removes the comments modal, clears active state, increments the modal request ID, and rerenders the review list. 
 
   - `renderReviewCommentsModal()`  
     This function generates HTML for the comments modal from the current modal state. It generates the comment form, comment list, loading state, and error state.
@@ -752,61 +752,123 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function extracts the like count from a review.
 
   - `normalizeFeedReview()`  
-    Normalizes a raw review entry by resolving its like count, comment count, and 
-    comments preview into consistent fields.
+    This function returns `num_likes`, `comment_count`, and `comments_preview` for an entry in the feed.
 
   - `createProfileHref()`  
-    Returns the correct profile URL for a given username — `/profile` for the 
-    current user, `/profile/<username>` for others, and an empty string if no 
-    username is provided.
+    This function returns the profile URL for a specific username. It uses `/profile` for the current user and `/profile/<username>` for others. 
 
   - `getReviewArtwork()`  
-    Returns an `{ src, alt }` object for a review's artwork, falling back to 
-    a default record image for artists or album cover image for songs and albums.
+    This function returns a JSON `{src, alt}` object for a review artwork. It also creates a fallback record for artists and a default album cover image for song and album reviews.
 
   - `bindReviewLikeHandler()`  
-    Attaches a delegated click handler to a review list container that handles 
-    like and unlike actions. Updates `localStorage`, `allFeedReviews`, and the 
-    page-specific review list, then re-renders. Prevents double-submission via 
-    `data-is-pending`.
+    This function creates a like/unlike click handler for the review list container. This is used to recieve  like and unlike actions from the user. It updates `localStorage`, `allFeedReviews`, and the page review list and rerenders the page.  
 
   - `bindReviewCommentHandler()`  
-    Attaches a delegated click handler to a review list container that opens the 
-    comments modal when a comment button is clicked.
+    This function creates a comment click handler for the review list container. This function opens the comments modal when a comment button is clicked.
 
   - `formatFeedRatingDisplay()`  
-    Converts a numeric rating into a filled/empty star string and a score label 
-    (e.g. `★★★☆☆` and `3/5`). Used for individual review ratings.
+    This function converts a numeric rating into a string with star images. This function returns both the star images and a score out of 5 for each review in the feed. 
 
   - `formatAverageRatingDisplay()`  
-    Same as `formatFeedRatingDisplay` but uses one decimal place for the score 
-    (e.g. `3.4/5`). Used for aggregate ratings in search detail panels.
+    This function is very similar to `formatFeedRatingDisplay()`. It converts a numeric rating into a string with star images and returns both the star images and a score out of 5 for each review in the feed. The biggest difference is that the score out of 5 allows a decimal place. 
 
   - `createFeedCard()`  
-    Renders a complete review card as an HTML string. Used by every page that 
-    displays reviews — feed, profile, and search detail. Resolves artwork, 
-    formats ratings, generates profile links, and sets initial like state from 
-    `localStorage`.
+    This function creates and renders a review card as an HTML string. This function is used by every page that displays reviews (feed, profile, and search details). It also resolves the artwork, formats review ratings, generates profile links, and sets a like state from `localStorage`.
 
   - `formatMemberSince()`  
-    Formats a date string into a long-form date (e.g. "April 12, 2026"). Returns 
-    "Unknown" for missing values and the raw value for unparseable ones.
+    This function normalizes a date string into a long date format and returns it parsed. 
 
   - `renderProfileSummary()`  
-    Populates `#profile-name`, `#profile-handle`, and `#profile-member` with data 
-    from a profile object. Called by `profile.js` after the profile loads and 
-    after a successful profile edit.
+    This function populates `#profile-name`, `#profile-handle`, and `#profile-member` with the given profile obj.
 
 #### `jukeboxd/FrontEnd/static/js/app/pages`
 
 - `jukeboxd/FrontEnd/static/js/app/pages/auth.js`  
-  Login and registration page logic, including form validation, API calls, and localStorage session setup after login.
+  This function integrates login and registration with the flask logic. It POSTs to `/api/login` and `/api/register`, stores auth state in `localStorage`, and starts the login and register form handlers.
+
+  - `registerUser()`  
+    This function POSTs a JSON obj with `{firstName, lastName, username, email, password}` to the `/api/register` endpoint and returns a `{success, message}` obj.
+
+  - `initRegisterPage()`  
+    This function pulls the register form from `register.html`. It verifies that all fields are filled and that the username is 5-12 characters. It then calls `registerUser()`. If successful, it calls `loginUser()` and redirects to `/`.
+
+  - `loginUser()`  
+    This function POSTs JSON obj `{email, password}` to `/api/login`. Then it stores `user_id`, `username`, and `user_email` in `localStorage` and returns true, and it stores nothing and returns false if the login fails.
+
+  - `initLoginPage()`  
+    This function pulls the login form from `login.html`. It verifies that both fields are filled and calls `loginUser()`subsequently redirecting to `/`.
+
 
 - `jukeboxd/FrontEnd/static/js/app/pages/feed.js`  
-  Home feed page controller. It loads the feed, handles infinite scrolling, supports the all/friends/song/album/artist filters, and renders empty-state messages.
+  This file creates and controls the feed home page. It loads the feed, handles infinite scrolling and the back-to-top button, supports the all/friends/song/album/artist filters, and renders empty-state messages.
+
+  - `initHomeFeed()`  
+    This function what starts the feed page. It FETCHes reviews from our `/api/feed` endpoint and friendship data from the `/api/friendships`endpoint. They are FETCHed together, normalized, and rendered in the feed. It also creates the filter buttons, infinite scroll, the back-to-top button, and like and comment handlers.
+
+  - `normalizeFeedType()`  
+    This function sets the review type string  to lowercase.
+
+  - `normalizeUsername()`  
+    This function sets the username string  to lowercase.
+
+  - `getFriendFilteredReviews()`  
+    This function filters `allFeedReviews` to only reviews whose username matches a user in the `friendUsernames` set. It returns an empty array if the user is friendless and alone.
+
+  - `getFilteredReviews()`  
+    This function uses the `activeFeedFilter` to filter `allFeedReviews`. It returns all reviews for "all", friends' reviews for "friends", or specific filtered reviews for "song", "album", and "artist" respectively.
+
+  - `getEmptyFeedMessage()`  
+    This function returns an empty state message based on the current filter. The friends filter has extra cases for when friendship data doesn't load or when the user is lonely with no friends.
+
+  - `updateFilterButtons()`  
+    This function updates the `is-active` class and `aria-pressed` attribute on all buttons to match the current `activeFeedFilter`.
+
+  - `hasMoreReviews()`  
+    This function returns true if there are more filtered reviews than the `visibleFeedCount`.
+
+  - `loadMoreReviews()`  
+    This function increments `visibleFeedCount` by `FEED_PAGE_SIZE` and rerenders the feed if there are more reviews. 
+
+  - `maybeLoadMoreOnScroll()`  
+    This function checks if the scroll element is close to the bottom and calls `loadMoreReviews()` if it is.
+
+  - `updateBackToTopButton()`  
+    This function displays the back-to-top button if the user has scrolled more than 320px down the page.
+
+  - `renderFeed()`  
+    This function renders the visible section of currently filtered reviews into `#feed-list` with `createFeedCard()` from `reviews.js`. It shows an empty message if there are no reviews in the `#feed-list`, like if you are friendless and alone.
+
 
 - `jukeboxd/FrontEnd/static/js/app/pages/search.js`  
-  Search page controller. It performs live search queries, opens the detail modal, and loads the top related reviews for the selected item.
+  This file creates and controls the search page. It performs live search queries, opens the detail modal, and loads the top related reviews for the selected item.
+
+  - `initSearchPage()`  
+    This function initializes the search page. It creates the live search input query, result card clicks, detail modal open/close, and like and comment handlers. When clicked, it opens the detail modal and FETCHes reviews from the `/api/search_related_reviews` endpoint. It uses a request ID to delete pending responses if a different review is clicked before the FETCH returns. 
+
+  - `normalizeSearchItemType()`  
+    This function sets the item type string to lowercases and maps it to "song", "album", or "artist". 
+
+  - `openDetailModal()`  
+    This function unhides the detail modal and sets body overflow to hidden, locking the scroll.
+
+  - `closeDetailModal()`  
+    This function hides the detail modal and removes body overflow, freeing scrolling. This is triggered by the close button, backdrop click, and esc key.
+
+  - `renderSearchDetailModal()`  
+    This function renders the detail modal content from current state. It displays the selected item's artwork, title, average rating, and top reviews with `createFeedCard()` in `reviews.js`. It also creates loading, error, and empty states for both the review list and the displayed average rating.
+
+  - `renderResults()`  
+    This function FETCHes the search results from the `/api/search?q=` endpoint and displays the results as clickable cards in `#search-results`. It also shows a count of matches and an empty message if no results are found.
+
+  - `formatSearchItemType()`  
+    This function gets the result of `normalizeSearchItemType()` and capitalizes the first letter for better readability. 
+
+  - `getSearchFallbackArtwork()`  
+    This function returns a default image path based on the given item type. It returns a record image for artists and an album cover for songs and albums.
+
+  - `getSearchItemArtwork()`  
+    This function returns a `{src, alt}` JSON obj for search results. It uses the item's preloaded `artwork_url` if if exists, and falls back to the link returned from `getSearchFallbackArtwork()` if it does not. If `fallbackEntry` is set, then it returns the artwork of the provided param. 
+
 
 - `jukeboxd/FrontEnd/static/js/app/pages/add.js`  
   Add-review page controller. It handles search selection, star ratings, character counts, and posting new reviews.
