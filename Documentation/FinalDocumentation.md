@@ -803,7 +803,7 @@ This folder holds the html, js, and css files that form the skeleton of our fron
   This file creates and controls the feed home page. It loads the feed, handles infinite scrolling and the back-to-top button, supports the all/friends/song/album/artist filters, and renders empty-state messages.
 
   - `initHomeFeed()`  
-    This function what starts the feed page. It FETCHes reviews from our `/api/feed` endpoint and friendship data from the `/api/friendships`endpoint. They are FETCHed together, normalized, and rendered in the feed. It also creates the filter buttons, infinite scroll, the back-to-top button, and like and comment handlers.
+    This function what starts the feed page. It FETCHes reviews from our `/api/feed` endpoint and friendship data from the `/api/friendships`endpoint. They are FETCHed together, normalized, and rendered in the feed. It also creates the filter buttons, infinite scroll, the back-to-top button, and like/comment handlers.
 
   - `normalizeFeedType()`  
     This function sets the review type string  to lowercase.
@@ -843,7 +843,7 @@ This folder holds the html, js, and css files that form the skeleton of our fron
   This file creates and controls the search page. It performs live search queries, opens the detail modal, and loads the top related reviews for the selected item.
 
   - `initSearchPage()`  
-    This function initializes the search page. It creates the live search input query, result card clicks, detail modal open/close, and like and comment handlers. When clicked, it opens the detail modal and FETCHes reviews from the `/api/search_related_reviews` endpoint. It uses a request ID to delete pending responses if a different review is clicked before the FETCH returns. 
+    This function initializes the search page. It creates the live search input query, result card clicks, detail modal open/close, and like/comment handlers. When clicked, it opens the detail modal and FETCHes reviews from the `/api/search_related_reviews` endpoint. It uses a request ID to discards pending responses if a different review is clicked before the FETCH returns. 
 
   - `normalizeSearchItemType()`  
     This function sets the item type string to lowercases and maps it to "song", "album", or "artist". 
@@ -867,14 +867,76 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function returns a default image path based on the given item type. It returns a record image for artists and an album cover for songs and albums.
 
   - `getSearchItemArtwork()`  
-    This function returns a `{src, alt}` JSON obj for search results. It uses the item's preloaded `artwork_url` if if exists, and falls back to the link returned from `getSearchFallbackArtwork()` if it does not. If `fallbackEntry` is set, then it returns the artwork of the provided param. 
+    This function returns a `{src, alt}` JSON obj for search results. It uses the item's preloaded `artwork_url` if if exists; checks if `fallbackEntry` is set, then it returns the artwork of the provided param; and falls back to the link returned from `getSearchFallbackArtwork()` if neither of the above conditions are met.  
 
 
 - `jukeboxd/FrontEnd/static/js/app/pages/add.js`  
-  Add-review page controller. It handles search selection, star ratings, character counts, and posting new reviews.
+  This file is the add-review page controller. It handles search selection, star ratings, character counts, and posting new reviews.
+
+  - `initAddPage()`  
+    This function initializes the add-review page. It requires login, and then renders the live search input, result card selection, star rating buttons, character counter, and form submission. When the add for is submitted, it validates all three fields, builds the review payload, and POSTs the form results to our `/api/add_review` endpoint. When successful, it resets the entire form and shows the success toast.
+
+  - `showReviewToast()`  
+    This function shows the review toast notification with a given message. It clears all active toast timers and then starts a new one. This new toast is hidden after 2200ms. 
+
+  - `updateReviewCharCount()`  
+    This function updates the character counter display. It also enforces a 300 char limit and truncates the value if it goes over. 
+
+  - `updateSelectedLabel()`  
+    This function sets the selected item label to the title of the currently selected search result. It returns "Nothing selected yet" if nothing is selected.
+
+  - `renderResults()`  
+    This function FETCHes results from the `/api/search?q=` endpoint and displays the results as selectable cards in the results container. Then it clears results and resets the count label if the query is empty.
+
+  - `setRating()`  
+    This function sets the hidden rating input value, updates the rating status text, and toggles the `is_active` class on star buttons to display the selected star rating. 
 
 - `jukeboxd/FrontEnd/static/js/app/pages/profile.js`  
-  Main profile page controller. It loads profile data and review history, wires in like/comment behavior, and manages the edit-profile modal.
+  This file renders and controls the profile page. It loads profile data and review history, wires in like/comment behavior, and manages the edit-profile modal.
+
+  - `initProfilePage()`  
+    This function initializes the profile page. After verifying that the user is logged in, it FETCHes the profile and user reviews at the same time from our `/api/profile` and `/api/user_reviews` endpoints. It then renders the profile summary and review list. After profile data is FETCHed, it starts the friendship controller. It also creates the edit profile modal and like/comment handlers.
+
+  - `getViewedUsername()`  
+    This function returns the username of the profile being viewed, read from 
+    `document.body.dataset.username`.
+
+  - `formatPossessiveHandle()`  
+    This function returns a possessive username string for display (e.g. 
+    `@james'` or `@james's`) based on whether the username ends in "s". Returns 
+    "this user's" if no username is available.
+
+  - `updateProfileReviewsSubtitle()`  
+    This function updates the reviews section subtitle. Shows "your most recent 
+    reviews" on own profile and a possessive handle for other profiles.
+
+  - `setEditProfileMessage()`  
+    This function sets the message text inside the edit profile modal. Accepts an 
+    `isError` flag to style it as an error.
+
+  - `renderProfileReviews()`  
+    This function renders the profile's review list into `#profile-review-list` 
+    using `createFeedCard()` and updates the review count. Shows an empty state 
+    message if there are no reviews.
+
+  - `renderProfileLoadError()`  
+    This function renders an error state across the entire profile page when the 
+    initial profile load fails. It fills all profile header fields with fallback 
+    values and shows an error card in the review list.
+
+  - `openEditProfileModal()`  
+    This function opens the edit profile modal and pre-fills all four fields from 
+    `currentProfile`. Re-enables the save button and clears any previous message.
+
+  - `closeEditProfileModal()`  
+    This function hides the edit profile modal, re-enables the save button, clears 
+    the message, and returns focus to the edit button. Also triggered by backdrop 
+    click and Escape key.
+
+  - `refreshProfileReviews()`  
+    This function re-fetches the user's reviews from `/api/user_reviews` and 
+    rerenders the review list. Called after a successful profile edit to reflect 
+    any display name changes.
 
 - `jukeboxd/FrontEnd/static/js/app/pages/profile_friendships.js`  
   Friendship-specific profile controller. It renders friends, requests, connection states, the friends modal, and the friend-action buttons.
