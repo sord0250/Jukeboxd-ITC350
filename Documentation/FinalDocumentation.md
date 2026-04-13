@@ -722,48 +722,34 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function escapes HTML special characters in a string to stop XSS. It doesn't return anything, it just edits the inputs. 
 
   - `normalizeReviewComment()`  
-    This function converts a comment record into a normalized form, even if it came from Directus or the user input form. 
+    This function converts a comment record into a normalized form, whether it came from Directus or the user input form. 
 
   - `getReviewCommentsPreview()`  
-    Extracts and normalizes the comments preview array from a review entry, 
-    filtering out any entries with empty comment text.
+    This function pulls the comments preview array from a review and normalizes it. It removes entries with empty text.
 
   - `getReviewCommentCount()`  
-    Safely extracts the comment count from a review entry, falling back to the 
-    length of the comments preview if the count field is missing.
+    This function extracts the comment count from a review and returns it.
 
   - `formatReviewCommentTimestamp()`  
-    Formats a timestamp string into a human-readable date (e.g. "Apr 12, 2026"). 
-    Returns an empty string for invalid or missing values.
+    This function normalizes a timestamp string into a month, day, year format. It returns an empty string for missing values.
 
   - `createReviewCommentMarkup()`  
-    Renders a single comment as an HTML string. Optionally includes a formatted 
-    timestamp.
+    This function transforms a comment into an HTML string and returns it. It can include a formatted timestamp.
 
   - `ensureReviewCommentsModal()`  
-    Lazily creates the comments modal DOM node on first call and appends it to 
-    `<body>`, then caches and returns it. All subsequent calls return the cached 
-    reference. Also wires up close, backdrop click, Escape key, and form submit 
-    handlers.
+    This function verifies that the review comments modal exists, and if not, then it creates the comments modal and appends it to `<body>`. It is then cached and returned. All other calls return the cached reference. 
 
   - `closeReviewCommentsModal()`  
-    Hides the comments modal, clears active state, increments the reviewId to 
-    cancel any in-flight fetches, and triggers a re-render of the underlying 
-    review list.
+    This function removes the comments modal, clears active state, increments the reviewId, and rerenders the review list. 
 
   - `renderReviewCommentsModal()`  
-    Renders the full comments modal content from the current modal state, including 
-    the comment form, comment list, loading state, and error state.
+    This function generates HTML for the comments modal from the current modal state. It generates the comment form, comment list, loading state, and error state.
 
   - `openReviewCommentsModal()`  
-    Opens the comments modal for a specific review. Shows a loading state 
-    immediately, then fetches full comments from `/api/reviews/<id>/comments` and 
-    re-renders. Uses the reviewId pattern to discard stale responses if the 
-    modal is opened for a different review before the fetch completes.
+    This function opens the comments modal for a specific review. It starts with a loading state, then FETCHes comments from `/api/reviews/<id>/comments` and rerenders the page. This function uses the reviewId to throw out stale responses if the modal is opened for a different review before the FETCH is finished. 
 
   - `getReviewLikeCount()`  
-    Safely extracts the like count from a review entry, trying multiple possible 
-    field names and returning 0 on failure.
+    This function extracts the like count from a review.
 
   - `normalizeFeedReview()`  
     Normalizes a raw review entry by resolving its like count, comment count, and 
