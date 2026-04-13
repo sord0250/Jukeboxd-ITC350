@@ -41,7 +41,6 @@ marp: false
 * [FRONT-END DOCUMENTATION](#front-end-documentation)
   * [/BACKEND](#backend)
   * [/TEMPLATES](#templates)
-  * [/STATIC/CSS](#static-css)
   * [/STATIC/JS](#static-js)
 * [APPENDIX 1](#appendix-1-low-fidelity-paper-prototypes)
 * [APPENDIX 2](#appendix-2-sql-scripts)
