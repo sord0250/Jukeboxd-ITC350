@@ -591,16 +591,16 @@ This folder holds the html, js, and css files that form the skeleton of our fron
 #### `jukeboxd/FrontEnd/templates/components`
 
 - `jukeboxd/FrontEnd/templates/components/navbar.html`  
-  Shared top navigation bar used across the site, including the home logo, search/add links, and profile/account area.
+  This file generates the shared top navigation bar used across all pages of the site. The navbar includes the home logo, search/add links, and profile/account area. It the user is logged in, it uses `session.get('user_id')` to render the search and add review buttons. 
 
 - `jukeboxd/FrontEnd/templates/components/scripts.html`  
-  Shared script include file that loads the app’s core JavaScript modules in order.
+  This file is a shared script include file that loads the app’s core JavaScript modules in order. `core.js`is loaded first, everything else depends on this. `api.js` is loaded second for all fetch functions used by page scripts. `reviews.js` is third and shares review rendering, which needs to be loaded before any page script that renders reviews. Then all page scripts (search.js, feed.js, profile_friendships.js, profile.js, add.js, auth.js) are loaded because they can now interact with their dependencies. `navbar.js` is then loaded since it depends on auth state. `boot.js` is the last to be loaded, as it is the initializer that reads the current page and calls the appropriate init function. This file receives global variables for the templates from `client_config`.  
 
 - `jukeboxd/FrontEnd/templates/components/profile_edit_modal.html`  
-  Partial template for the edit-profile modal, including locked username/email fields and editable first/last name fields.
+  This file creates a template for the edit-profile modal. This locks username/email fields and only allows edits to first/last name fields. This file PATCHes to `/api/profile` with `{"firstName", "lastName", "username"}`, even though username cannot be changed. 
 
 - `jukeboxd/FrontEnd/templates/components/profile_friends_modal.html`  
-  Partial template for the popout friends-list modal on the profile page.
+  This file creates a template to display a full friends list modal on the profile page. This file only serves to display results of `refreshFriendshipData()`. 
 
 
 ### /STATIC/JS
@@ -608,19 +608,210 @@ This folder holds the html, js, and css files that form the skeleton of our fron
 #### `jukeboxd/FrontEnd/static/js/app`
 
 - `jukeboxd/FrontEnd/static/js/app/boot.js`  
-  App bootstrapper. It calls all page initialization functions after `DOMContentLoaded`.
+  This file is the app bootstrapper. It calls all page initialization functions after `DOMContentLoaded`.
 
 - `jukeboxd/FrontEnd/static/js/app/core.js`  
-  Small shared utility layer for checking login state, reading/writing localStorage identity, and logging out.
+  This file is creates a shared utility layer for checking login state, reading/writing localStorage identity, and logging out. 
+
+  - `isLoggedIn()`
+    This function verifies logins. It only checks if the `user_id` exists in the session state.
+
+  - `requireLogin()`
+    This function redirects all users to `/login` if `user_id` does not exist in the session state. 
+
+  - `logoutUser()` 
+    This function clears the session state from the browser. It clears `user_id`, `username`, and `user_email`. 
 
 - `jukeboxd/FrontEnd/static/js/app/api.js`  
-  Shared frontend API wrapper for search, feed, reviews, comments, profiles, friendships, and likes.
+  This file creates a shared frontend API wrapper for search, feed, reviews, comments, profiles, friendships, and likes. Every HTTP call in the app uses a function defined here to connect to our API. 
+
+  - `fetchSearch()`
+    This function runs a GET call to `/api/search?q=` 
+
+  - `fetchSearchRelatedReviews()`
+    This function runs a GET call to `/api/search_related_reviews?type=&id=&limit=`.
+
+  - `fetchFeedReviews()`
+    This function runs a GET call to `/api/feed`.
+
+  - `fetchUserReviews()`
+    This function runs a GET call to `/api/user_reviews?username=`.
+
+  - `fetchProfile()`
+    This function runs a GET call to `/api/profile?username=`.
+
+  - `fetchCurrentProfile()`
+    This function runs a GET call to `/api/profile`.
+
+  - `updateCurrentProfile()`
+    This function runs a PATCH call to `/api/profile` with the JSON body `{firstName, lastName, username}`.
+
+  - `createReview()`
+    This function runs a POST call to `/api/add_review` with the JSON body `{R_Text, R_Rating, S_ID or AL_ID or ART_ID}`.
+
+  - `fetchReviewComments()`
+    This function runs a GET call to `/api/reviews/<id>/comments`.
+
+  - `createReviewComment()`
+    This function runs a POST call to `/api/reviews/<id>/comments` with a JSON body of `{commentText}`.
+
+  - `setReviewLike()`
+    This function runs both POST and DELETE calls to `/api/reviews/<id>/like`.
+
+  - `fetchFriendshipData()`
+    This function runs a GET call to `/api/friendships?username=`.
+
+  - `createFriendRequest()`
+    This function runs a POST call to `/api/friendships` with a JSON body of `{username}`.
+
+  - `updateFriendship()`  
+    This function runs a PATCH call to `/api/friendships/<id>` with the JSON body `{action}`. The action is always `"accept"`. 
+
+  - `deleteFriendship()`  
+    This function runs a DELETE call to `/api/friendships/<id>`.
+
 
 - `jukeboxd/FrontEnd/static/js/app/navbar.js`  
-  Navbar behavior module. It fills the account dropdown with login/register or logout actions depending on local login state.
+  This function creates the navbar behavior module. It fills the account dropdown with login/register or logout actions depending on local login state. 
+
+  - `initNavbarAccount()`
+    This function fills the `nav-account-dropdown` based on the session state in `localStorage`. If `user_id` exists, it renders the logout button. If not, it renders the `login` and `register` buttons. The logout button in the navbar is rendered as an `<a href="/login">`, but it calls `logoutUser()` instead of navigating to `/login`.
 
 - `jukeboxd/FrontEnd/static/js/app/reviews.js`  
-  Shared review UI engine. It normalizes review objects, builds feed cards, supports likes, opens the comment modal, formats ratings, and generates profile links from usernames.
+  This file generates the shared review UI engine. It normalizes review objects, builds feed cards, supports likes, opens the comment modal, formats ratings, and generates profile links from usernames. 
+
+  - `createReviewCommentsModalState()`  
+    This function creates a default modal state object with all fields set as NULL. It also accepts overrides to set specific fields.
+
+  - `isReviewCommentsModalOpenFor()`  
+    This function returns true if the comments modal is open and contains a specific `reviewId`.
+
+  - `syncReviewCommentState()`  
+    This function updates comment data in both `allFeedReviews` and a page-specific review list every time a comment is posted. It then rerenders the page. 
+
+  - `getLikedReviewStorageKey()`  
+    This function returns the `username` stored in the session state and returns `NULL` if no user is logged in.
+
+  - `getLikedReviewIds()`  
+    This function reads and parses the user's liked reviewId list from `localStorage`. 
+
+  - `hasLikedReview()`  
+    This function returns true if the user has liked a specified reviewId.
+
+  - `storeLikedReview()`  
+    This function appends a reviewId to the user's `likedReviewIds` list in `localStorage`.
+
+  - `removeLikedReview()`  
+    This function removes a reviewId from the user's `likedReviewIds` list in `localStorage`.
+
+  - `updateFeedReviewLikeCount()`  
+    This function updates the like count for a specific review in `allFeedReviews`.
+
+  - `updateReviewLikeCountInList()`  
+    This function updates the `allFeedReviews` list by creating a new review list with the like count updated for a specific review. It returns a JSON obj with `{num_likes, review_num_likes, R_NumOfLikes}`. 
+
+  - `updateFeedReviewComments()`  
+    Updates the comment preview and count for a specific review in `allFeedReviews` 
+    in place.
+
+  - `updateReviewCommentsInList()`  
+    Returns a new review list with comment data updated for a specific review. 
+    Used to update page-specific review lists without mutating them directly.
+
+  - `escapeHtml()`  
+    Escapes HTML special characters in a string to prevent XSS when injecting 
+    user-generated content into the DOM.
+
+  - `normalizeReviewComment()`  
+    Converts a raw comment record into a consistent shape regardless of whether 
+    it came from Directus field names or normalized field names.
+
+  - `getReviewCommentsPreview()`  
+    Extracts and normalizes the comments preview array from a review entry, 
+    filtering out any entries with empty comment text.
+
+  - `getReviewCommentCount()`  
+    Safely extracts the comment count from a review entry, falling back to the 
+    length of the comments preview if the count field is missing.
+
+  - `formatReviewCommentTimestamp()`  
+    Formats a timestamp string into a human-readable date (e.g. "Apr 12, 2026"). 
+    Returns an empty string for invalid or missing values.
+
+  - `createReviewCommentMarkup()`  
+    Renders a single comment as an HTML string. Optionally includes a formatted 
+    timestamp.
+
+  - `ensureReviewCommentsModal()`  
+    Lazily creates the comments modal DOM node on first call and appends it to 
+    `<body>`, then caches and returns it. All subsequent calls return the cached 
+    reference. Also wires up close, backdrop click, Escape key, and form submit 
+    handlers.
+
+  - `closeReviewCommentsModal()`  
+    Hides the comments modal, clears active state, increments the reviewId to 
+    cancel any in-flight fetches, and triggers a re-render of the underlying 
+    review list.
+
+  - `renderReviewCommentsModal()`  
+    Renders the full comments modal content from the current modal state, including 
+    the comment form, comment list, loading state, and error state.
+
+  - `openReviewCommentsModal()`  
+    Opens the comments modal for a specific review. Shows a loading state 
+    immediately, then fetches full comments from `/api/reviews/<id>/comments` and 
+    re-renders. Uses the reviewId pattern to discard stale responses if the 
+    modal is opened for a different review before the fetch completes.
+
+  - `getReviewLikeCount()`  
+    Safely extracts the like count from a review entry, trying multiple possible 
+    field names and returning 0 on failure.
+
+  - `normalizeFeedReview()`  
+    Normalizes a raw review entry by resolving its like count, comment count, and 
+    comments preview into consistent fields.
+
+  - `createProfileHref()`  
+    Returns the correct profile URL for a given username — `/profile` for the 
+    current user, `/profile/<username>` for others, and an empty string if no 
+    username is provided.
+
+  - `getReviewArtwork()`  
+    Returns an `{ src, alt }` object for a review's artwork, falling back to 
+    a default record image for artists or album cover image for songs and albums.
+
+  - `bindReviewLikeHandler()`  
+    Attaches a delegated click handler to a review list container that handles 
+    like and unlike actions. Updates `localStorage`, `allFeedReviews`, and the 
+    page-specific review list, then re-renders. Prevents double-submission via 
+    `data-is-pending`.
+
+  - `bindReviewCommentHandler()`  
+    Attaches a delegated click handler to a review list container that opens the 
+    comments modal when a comment button is clicked.
+
+  - `formatFeedRatingDisplay()`  
+    Converts a numeric rating into a filled/empty star string and a score label 
+    (e.g. `★★★☆☆` and `3/5`). Used for individual review ratings.
+
+  - `formatAverageRatingDisplay()`  
+    Same as `formatFeedRatingDisplay` but uses one decimal place for the score 
+    (e.g. `3.4/5`). Used for aggregate ratings in search detail panels.
+
+  - `createFeedCard()`  
+    Renders a complete review card as an HTML string. Used by every page that 
+    displays reviews — feed, profile, and search detail. Resolves artwork, 
+    formats ratings, generates profile links, and sets initial like state from 
+    `localStorage`.
+
+  - `formatMemberSince()`  
+    Formats a date string into a long-form date (e.g. "April 12, 2026"). Returns 
+    "Unknown" for missing values and the raw value for unparseable ones.
+
+  - `renderProfileSummary()`  
+    Populates `#profile-name`, `#profile-handle`, and `#profile-member` with data 
+    from a profile object. Called by `profile.js` after the profile loads and 
+    after a successful profile edit.
 
 #### `jukeboxd/FrontEnd/static/js/app/pages`
 
