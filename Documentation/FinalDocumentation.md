@@ -550,40 +550,40 @@ This section of the code contains essential functions for the server to run. It 
 
 #### `jukeboxd/FrontEnd/templates`
 
-This folder holds the html, js, and css files that form the skeleton of our frontend. 
+This folder holds the html, js, and css files that form the skeleton of our frontend. All of the html files in this directory render the `navbar` and `scripts` from our `/templates/components` folder. All of the templates also use `Jinja2` to interface with our `flask` container.
 
 - `jukeboxd/FrontEnd/templates/index.html`  
-  This file renders the home page of the website. It uses `Jinja2` to interface with our flask container. The home page is also where the feed is displayed. It renders the welcome section, feed filter buttons, feed list, and back-to-top button. It also renders the `navbar` and `scripts` from our `/templates/components` folder. 
+  This file renders the home page of the website.  The home page is also where the feed is displayed. It renders the welcome section, feed filter buttons, feed list, and back-to-top button. This page GETs from the api endpoint `/api/feed`.
 
 ![index.html](./index.html.png)
 
 - `jukeboxd/FrontEnd/templates/search.html`  
-  Search page. It renders the live search UI and the modal that shows top related reviews for a selected item.
+  This file renders the search page. It renders the live search UI and the modal that shows top related reviews for a selected item. This page GETs from the api endpoint `/api/search`.
 
 ![search.html](./search.html.png)
 
 - `jukeboxd/FrontEnd/templates/add.html`  
-  Add-review page. It contains the search picker, star rating controls, review text area, form message, and review toast.
+  Ths file renders the page that creates new reviews. It contains the search picker, star rating controls, review text area, form message, and review toast. This page GETs from the api endpoint `/api/search` and POSTs to `/api/add_review` with the JSON `{R_Text, R_Rating, S_ID/AL_ID/ART_ID}`. It POSTs the results of a form to this endoint. The form uses `novalidate` as our app uses `input_sanitization.py` for validation. 
 
 ![add.html](./add.html.png)
 
 - `jukeboxd/FrontEnd/templates/login.html`  
-  Login form page for email and password sign-in.
+  This file generates the login form page for email and password sign-in. This page POSTs to `/api/login` using `{email, password}`. It POSTs the results of a form to this endoint. This form also uses `novalidate` in the html body. 
 
 ![login.html](./login.html.png)
 
 - `jukeboxd/FrontEnd/templates/register.html`  
-  Registration form page for first name, last name, username, email, and password.
+  This file renders the registration form page. It is very similar to `login.html`, except the form contains first name, last name, username, email, and password. This page POSTs to `/api/register` using `{firstName, lastName, username, email, password}`.
 
 ![register.html](./register.html.png)
 
 - `jukeboxd/FrontEnd/templates/profile.html`  
-  Profile page layout. It shows profile summary info, friends, incoming requests, account actions, and the user’s review list.
+  This file renders the profile page layout. It shows profile summary info, friends, incoming requests, account actions, and the user’s review list. This page renders differently depending on whether the viewer owns the profile, which is determined by `flask` and injected into the page as a `data-is-own-profile` attribute on the `<body>` tag. This html page actually receives values from the flask container and integrates them in the page with `Jinja2`. This file also connects to several API endpoints. It GETs from `/api/friendships?username=`, `/api/reviews/<id>/comments`, `/api/user_reviews/<username>`, and `/api/profile?username=` ; POSTs to `/api/friendships`, `/api/reviews/<id>/comments` with `{ "commentText": "comment content" }`, and `/api/reviews/<id>/like`; PATCHes to `/api/friendships/<id>` with `{ "action": "accept" }` and `/api/profile` with `{firstName, lastName, username}`; and DELETEs from `/api/friendships/<id>`.
 
 ![profile.html](./profile.html.png)
 
 - `jukeboxd/FrontEnd/templates/stats.html`  
-  Placeholder page for future stats or messages work. Right now it only renders a very minimal page shell.
+  This file renders a placeholder page for future stats or messages work. Right now it only renders a very minimal page shell. This portion of our website is out of scope for our class.
 
 ![stats.html](./stats.html.png)
 
