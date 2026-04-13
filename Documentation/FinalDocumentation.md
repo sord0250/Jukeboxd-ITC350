@@ -711,20 +711,18 @@ This folder holds the html, js, and css files that form the skeleton of our fron
     This function updates the `allFeedReviews` list by creating a new review list with the like count updated for a specific review. It returns a JSON obj with `{num_likes, review_num_likes, R_NumOfLikes}`. 
 
   - `updateFeedReviewComments()`  
-    Updates the comment preview and count for a specific review in `allFeedReviews` 
-    in place.
+    This function updates the comment preview and count for a specific review in `allFeedReviews` 
+    in place. It also returns a JSON obj with `{num_likes, review_num_likes, R_NumOfLikes}`.
 
   - `updateReviewCommentsInList()`  
-    Returns a new review list with comment data updated for a specific review. 
-    Used to update page-specific review lists without mutating them directly.
+    This function returns a new review list with comment data updated for a specific review. 
+    It is used to update page review lists without directly changing them.
 
   - `escapeHtml()`  
-    Escapes HTML special characters in a string to prevent XSS when injecting 
-    user-generated content into the DOM.
+    This function escapes HTML special characters in a string to stop XSS. It doesn't return anything, it just edits the inputs. 
 
   - `normalizeReviewComment()`  
-    Converts a raw comment record into a consistent shape regardless of whether 
-    it came from Directus field names or normalized field names.
+    This function converts a comment record into a normalized form, even if it came from Directus or the user input form. 
 
   - `getReviewCommentsPreview()`  
     Extracts and normalizes the comments preview array from a review entry, 
