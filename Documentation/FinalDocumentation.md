@@ -1,8 +1,3 @@
----
-marp: false
----
-
-
 # JUKEBOXD: MUSIC REVIEWS
 
 ## IT&C 350 DATABASE DESIGN PROJECT
